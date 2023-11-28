@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/fragment_registration"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="38dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal|top"
+            android:layout_marginTop="70dp"
+            android:fontFamily="@font/montserrat_bold"
+            android:gravity="center"
+            android:text="Впервые в нашем\n приложении?"
+            android:textColor="@color/black"
+            android:textSize="20sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Введите ваше имя:"
+            android:textColor="@color/black"
+            android:textSize="15sp"
+            android:fontFamily="@font/montserrat_regular"
+            android:layout_marginTop="30dp"
+            android:layout_marginBottom="8dp"
+            android:layout_marginStart="12dp"
+            />
+
+        <EditText
+            android:id="@+id/EtName"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:textSize="15sp"
+            android:textColor="@color/text_color"
+            android:hint="имя пользователя"
+            android:fontFamily="@font/montserrat_light"
+            android:paddingStart="13dp"
+            android:gravity="center_vertical"
+            android:background="@drawable/item_decoration"
+            android:maxLines="1"
+            android:maxLength="40"/>
+
+        <TextView
+            android:layout_marginStart="12dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Введите ваше рост:"
+            android:textColor="@color/black"
+            android:textSize="15sp"
+            android:fontFamily="@font/montserrat_regular"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"
+            />
+
+        <EditText
+            android:id="@+id/EtHeight"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:textSize="15sp"
+            android:textColor="@color/black"
+            android:hint="рост пользователя"
+            android:fontFamily="@font/montserrat_light"
+            android:paddingStart="13dp"
+            android:gravity="center_vertical"
+            android:background="@drawable/item_decoration_rectangle"
+            android:maxLines="1"
+            android:maxLength="3"/>
+
+        <TextView
+            android:layout_marginStart="12dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Введите ваше вес:"
+            android:textColor="@color/black"
+            android:textSize="15sp"
+            android:fontFamily="@font/montserrat_regular"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"
+            />
+
+        <EditText
+            android:id="@+id/EtWeight"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:textSize="15sp"
+            android:textColor="@color/text_color"
+            android:hint="вес пользователя"
+            android:fontFamily="@font/montserrat_light"
+            android:paddingStart="13dp"
+            android:gravity="center_vertical"
+            android:background="@drawable/item_decoration"
+            android:maxLines="1"
+            android:maxLength="3"/>
+
+        <TextView
+            android:layout_marginStart="12dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Когда вы последний раз кушали:"
+            android:textColor="@color/black"
+            android:textSize="15sp"
+            android:fontFamily="@font/montserrat_regular"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"
+            />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:textSize="15sp"
+            android:textColor="@color/black"
+            android:text="только что"
+            android:fontFamily="@font/montserrat_light"
+            android:paddingStart="13dp"
+            android:gravity="center_vertical"
+            android:background="@drawable/item_decoration" />
+
+        <TextView
+            android:id="@+id/ButtonRegistration"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:textSize="15sp"
+            android:textColor="@color/black"
+            android:text="Продолжить"
+            android:fontFamily="@font/montserrat_light"
+            android:gravity="center"
+            android:background="@drawable/item_decoration_button"
+            android:layout_marginBottom="43dp"
+            android:layout_marginTop="180dp" />
+
+
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
