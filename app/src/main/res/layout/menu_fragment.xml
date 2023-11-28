@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="28dp">
+
+        <TextView
+            android:id="@+id/Info"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginStart="94dp"
+            android:layout_marginEnd="94dp"
+            android:fontFamily="@font/montserrat_bold"
+            android:text="Рекомендации"
+            android:textColor="@color/black"
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/Water"
+            android:layout_marginStart="18dp"
+            android:layout_width="150dp"
+            android:layout_height="170dp"
+            android:layout_below="@+id/Info"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/item_decoration"
+            />
+
+        <ImageView
+            android:id="@+id/image_water"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignStart="@+id/Water"
+            android:layout_alignTop="@+id/Water"
+            android:layout_alignEnd="@+id/Water"
+            android:layout_alignBottom="@+id/Water"
+            android:layout_marginStart="25dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="25dp"
+            android:layout_marginBottom="52dp"
+            android:background="@drawable/water" />
+
+        <TextView
+            android:id="@+id/Food"
+            android:layout_width="150dp"
+            android:layout_height="170dp"
+            android:layout_below="@+id/Info"
+            android:layout_marginStart="18dp"
+            android:layout_marginTop="16dp"
+            android:layout_toEndOf="@+id/Water"
+            android:background="@drawable/item_decoration"/>
+
+        <ImageView
+            android:id="@+id/image_food"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignStart="@+id/Food"
+            android:layout_alignTop="@+id/Food"
+            android:layout_alignEnd="@+id/Food"
+            android:layout_alignBottom="@+id/Food"
+            android:layout_marginStart="25dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="25dp"
+            android:layout_marginBottom="52dp"
+            android:background="@drawable/food" />
+
+    </RelativeLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
