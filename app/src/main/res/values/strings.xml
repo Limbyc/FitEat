@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">FitEat</string>
+    <string-array name="mealtime">
+        <item>только что</item>
+        <item>пол часа назад</item>
+        <item>час назад</item>
+        <item>2 часа назад</item>
+        <item>более чем 3 часа назад</item>
+    </string-array>
 </resources>

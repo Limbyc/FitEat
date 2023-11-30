@@ -6,6 +6,9 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
+import android.widget.ListPopupWindow
+import android.widget.Spinner
 import androidx.fragment.app.Fragment
 import com.valance.fiteat.R
 import com.valance.fiteat.databinding.FragmentRegistrationBinding
@@ -21,6 +24,7 @@ class RegistrationFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentRegistrationBinding.inflate(inflater, container, false)
+
         return binding.root
     }
 
@@ -55,6 +59,16 @@ class RegistrationFragment : Fragment() {
 
         binding.EtHeight.addTextChangedListener(heightWatcher)
         binding.EtWeight.addTextChangedListener(weightWatcher)
+
+
+        val adapter = ArrayAdapter.createFromResource(
+            requireContext(),
+            R.array.mealtime,
+            android.R.layout.simple_spinner_dropdown_item
+        ).also { adapter ->
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            binding.SpinnerItem.adapter = adapter
+        }
     }
 
     private fun setupEditTextValidation() {
