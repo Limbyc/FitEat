@@ -21,6 +21,8 @@
             android:textColor="@color/black"
             android:textSize="20sp" />
 
+
+
         <TextView
             android:id="@+id/Water"
             android:layout_marginStart="18dp"
@@ -35,6 +37,21 @@
             android:paddingBottom="26dp"
             />
 
+        <TextView
+            android:id="@+id/Thirst"
+            android:textColor="@color/text_color"
+            android:layout_width="70dp"
+            android:layout_height="wrap_content"
+            android:layout_alignStart="@+id/Water"
+            android:layout_alignEnd="@+id/Water"
+            android:layout_alignBottom="@+id/Water"
+            android:layout_marginStart="40dp"
+            android:layout_marginEnd="40dp"
+            android:layout_marginBottom="7dp"
+            android:fontFamily="@font/montserrat_light"
+            android:textSize="15sp"
+            android:text="aaaaa"
+            android:gravity="center"/>
 
         <ImageView
             android:id="@+id/image_water"
@@ -49,8 +66,6 @@
             android:layout_marginEnd="25dp"
             android:layout_marginBottom="52dp"
             android:background="@drawable/water" />
-
-
 
         <TextView
             android:id="@+id/Food"
@@ -81,6 +96,22 @@
             android:background="@drawable/food" />
 
         <TextView
+            android:id="@+id/Hungry"
+            android:layout_width="70dp"
+            android:textColor="@color/text_color"
+            android:layout_height="wrap_content"
+            android:layout_alignStart="@+id/Food"
+            android:layout_alignEnd="@+id/Food"
+            android:layout_alignBottom="@+id/Food"
+            android:layout_marginStart="40dp"
+            android:layout_marginEnd="40dp"
+            android:layout_marginBottom="9dp"
+            android:fontFamily="@font/montserrat_light"
+            android:textSize="15sp"
+            android:text="aaaaaa"
+            android:gravity="center"/>
+
+        <TextView
             android:id="@+id/TVMeal"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -92,14 +123,38 @@
             android:layout_marginStart="18dp"
             android:textSize="18sp" />
 
-        <TextView
+
+        <FrameLayout
             android:id="@+id/Belki"
             android:layout_width="150dp"
             android:layout_height="215dp"
             android:layout_below="@+id/TVMeal"
             android:layout_marginStart="18dp"
             android:layout_marginTop="14dp"
-            android:background="@drawable/item_decoration" />
+            android:background="@drawable/item_decoration">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerView"
+                android:padding="16dp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <View
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:background="@drawable/circle_background"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="12dp"/>
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="16dp"
+                android:src="@drawable/plus" />
+
+
+        </FrameLayout>
 
         <TextView
             android:id="@+id/Work"
@@ -139,6 +194,8 @@
             android:layout_marginEnd="134dp"
             android:layout_marginBottom="56dp"
             android:background="@drawable/emotion" />
+
+
     </RelativeLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -7,8 +7,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
-import android.widget.ListPopupWindow
-import android.widget.Spinner
 import androidx.fragment.app.Fragment
 import com.valance.fiteat.R
 import com.valance.fiteat.databinding.FragmentRegistrationBinding
@@ -17,6 +15,8 @@ import com.valance.fiteat.databinding.FragmentRegistrationBinding
 class RegistrationFragment : Fragment() {
     private var height: Int? = null
     private var weight: Int? = null
+    private var isHeightValid = false
+    private var isWeightValid = false
     private lateinit var binding: FragmentRegistrationBinding
 
     override fun onCreateView(
@@ -61,7 +61,7 @@ class RegistrationFragment : Fragment() {
         binding.EtWeight.addTextChangedListener(weightWatcher)
 
 
-        val adapter = ArrayAdapter.createFromResource(
+        val spinnerAdapter = ArrayAdapter.createFromResource(
             requireContext(),
             R.array.mealtime,
             android.R.layout.simple_spinner_dropdown_item
@@ -78,7 +78,7 @@ class RegistrationFragment : Fragment() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
 
             override fun afterTextChanged(s: Editable?) {
-                val input = s.toString()
+                val input = s.toString().replace(" ", "")
                 height = input.toIntOrNull()
 
                 val enteredHeight = height ?: return
@@ -102,7 +102,7 @@ class RegistrationFragment : Fragment() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
 
             override fun afterTextChanged(s: Editable?) {
-                val input = s.toString()
+                val input = s.toString().replace(" ", "")
                 weight = input.toIntOrNull()
 
                 val enteredWeight = weight ?: return
@@ -119,15 +119,18 @@ class RegistrationFragment : Fragment() {
                 binding.ButtonRegistration.isEnabled = isHeightValid && isWeightValid
             }
         })
+
     }
+
 
     private fun updateTextViewBackground() {
         val enteredHeight = height ?: return
         val enteredWeight = weight ?: return
         val isHeightValid = enteredHeight in 120..240
         val isWeightValid = enteredWeight in 30..200
+        val isNameEntered = !binding.EtName.text.isNullOrBlank()
 
-        if (isHeightValid && isWeightValid) {
+        if (isHeightValid && isWeightValid && isNameEntered) {
             binding.ButtonRegistration.setBackgroundResource(R.drawable.item_decoration_button)
             binding.ButtonRegistration.setOnClickListener {
                 requireActivity().supportFragmentManager
