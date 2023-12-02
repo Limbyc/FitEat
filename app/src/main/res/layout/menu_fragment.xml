@@ -156,7 +156,7 @@
 
         </FrameLayout>
 
-        <TextView
+        <FrameLayout
             android:id="@+id/Work"
             android:layout_width="150dp"
             android:layout_height="215dp"
@@ -164,7 +164,30 @@
             android:layout_marginStart="18dp"
             android:layout_marginTop="14dp"
             android:layout_toEndOf="@+id/Belki"
-            android:background="@drawable/item_decoration" />
+            android:background="@drawable/item_decoration">
+
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerView1"
+                android:padding="16dp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <View
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:background="@drawable/circle_background"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="12dp"/>
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="16dp"
+                android:src="@drawable/plus" />
+
+        </FrameLayout>
 
         <TextView
             android:id="@+id/Emotion"
