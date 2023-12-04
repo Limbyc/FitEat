@@ -11,11 +11,11 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.valance.fiteat.R
-import com.valance.fiteat.ui.adapter.RecyclerViewComponents
-import com.valance.fiteat.ui.adapter.ComponentsData
+import com.valance.fiteat.ui.adapter.FoodComponentsAdapter
+import com.valance.fiteat.ui.adapter.FoodComponentsData
 import com.valance.fiteat.databinding.MenuFragmentBinding
-import com.valance.fiteat.ui.adapter.ComponentsWorkData
-import com.valance.fiteat.ui.adapter.RecyclerViewComponentsWork
+import com.valance.fiteat.ui.adapter.UserComponentsData
+import com.valance.fiteat.ui.adapter.UserComponentsAdapter
 
 class MenuFragment: Fragment() {
     private lateinit var binding: MenuFragmentBinding
@@ -35,13 +35,13 @@ class MenuFragment: Fragment() {
         recyclerView.layoutManager = layoutManager
 
         val data = listOf(
-            ComponentsData("Белки","a"),
-            ComponentsData("Жиры","a"),
-            ComponentsData("Углеводы","a"),
-            ComponentsData("Клетчатка","a"),
-            ComponentsData("Сахар","a"),
+            FoodComponentsData("Белки","a"),
+            FoodComponentsData("Жиры","a"),
+            FoodComponentsData("Углеводы","a"),
+            FoodComponentsData("Клетчатка","a"),
+            FoodComponentsData("Сахар","a"),
         )
-        val recyclerAdapter = RecyclerViewComponents(data)
+        val recyclerAdapter = FoodComponentsAdapter(data)
         recyclerView.adapter = recyclerAdapter
 
         val recyclerView1: RecyclerView = binding.recyclerView1
@@ -49,13 +49,13 @@ class MenuFragment: Fragment() {
         recyclerView1.layoutManager = layoutManager1
 
         val data1 = listOf(
-            ComponentsWorkData("Вода", "a"),
-            ComponentsWorkData("Прием", "a"),
-            ComponentsWorkData("Вес", "a"),
-            ComponentsWorkData("Деятельность", "a"),
-            ComponentsWorkData("Индекс. масса", "a")
+            UserComponentsData("Вода", "a"),
+            UserComponentsData("Прием", "a"),
+            UserComponentsData("Вес", "a"),
+            UserComponentsData("Деятельность", "a"),
+            UserComponentsData("Индекс. масса", "a")
         )
-        val recyclerAdapter1 = RecyclerViewComponentsWork(data1)
+        val recyclerAdapter1 = UserComponentsAdapter(data1)
         recyclerView1.adapter = recyclerAdapter1
 
         binding.Emotion.setOnClickListener{
@@ -64,7 +64,7 @@ class MenuFragment: Fragment() {
     }
     private fun showInputDialog() {
         val dialog = Dialog(requireContext(), R.style.CustomDialog)
-        dialog.setContentView(R.layout.changeweightdialog)
+        dialog.setContentView(R.layout.change_weight_dialog)
 
         val etNewWeight: EditText = dialog.findViewById(R.id.EtNewWeight)
         val confirmButton: TextView = dialog.findViewById(R.id.confirm)
@@ -74,7 +74,7 @@ class MenuFragment: Fragment() {
         confirmButton.setOnClickListener {
             val newWeight = etNewWeight.text.toString()
 
-            dialog.setContentView(R.layout.weightisrecordeddialog)
+            dialog.setContentView(R.layout.weight_is_recorded_dialog)
         }
 
         cancelButton.setOnClickListener {

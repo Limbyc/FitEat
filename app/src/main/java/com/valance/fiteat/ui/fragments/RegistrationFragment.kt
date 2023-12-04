@@ -8,15 +8,19 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.valance.fiteat.R
 import com.valance.fiteat.databinding.FragmentRegistrationBinding
+import com.valance.fiteat.ui.adapter.TimeMealAdapter
 
 
 class RegistrationFragment : Fragment() {
     private var height: Int? = null
     private var weight: Int? = null
-    private var isHeightValid = false
-    private var isWeightValid = false
+    private var isListVisible = false
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var adapter: TimeMealAdapter
     private lateinit var binding: FragmentRegistrationBinding
 
     override fun onCreateView(
@@ -25,18 +29,40 @@ class RegistrationFragment : Fragment() {
     ): View {
         binding = FragmentRegistrationBinding.inflate(inflater, container, false)
 
+        setupEditTextValidation()
+
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        //RecyclerView
+        val yourDataList = listOf(
+            "Только что",
+            "Пол часа назад",
+            "Час назад",
+            "2 часа назад",
+            "Более чем 3 часа назад"
+        )
+
+        binding.TVMealTime.setOnClickListener{
+            showOrHideList()
+        }
+
+        recyclerView = binding.recyclerViewMealTime
+        adapter = TimeMealAdapter(yourDataList) { selectedItem ->
+            binding.TVMealTime.text = selectedItem
+            showOrHideList()
+        }
+
+
+
         activity?.window?.apply {
             decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
         }
 
-        setupEditTextValidation()
-
+        //Height
         val heightWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
@@ -60,15 +86,6 @@ class RegistrationFragment : Fragment() {
         binding.EtHeight.addTextChangedListener(heightWatcher)
         binding.EtWeight.addTextChangedListener(weightWatcher)
 
-
-        val spinnerAdapter = ArrayAdapter.createFromResource(
-            requireContext(),
-            R.array.mealtime,
-            android.R.layout.simple_spinner_dropdown_item
-        ).also { adapter ->
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            binding.SpinnerItem.adapter = adapter
-        }
     }
 
     private fun setupEditTextValidation() {
@@ -123,6 +140,25 @@ class RegistrationFragment : Fragment() {
     }
 
 
+    //RecyclerView
+    private fun showOrHideList() {
+        if (::recyclerView.isInitialized) {
+            if (recyclerView.visibility == View.VISIBLE) {
+                recyclerView.visibility = View.GONE
+                binding.IvUpArrow.visibility = View.GONE
+                binding.IvDownArrow.visibility = View.VISIBLE
+                recyclerView.layoutManager = LinearLayoutManager(requireActivity())
+                recyclerView.adapter = adapter
+            } else {
+                recyclerView.visibility = View.VISIBLE
+                binding.IvUpArrow.visibility = View.VISIBLE
+                binding.IvDownArrow.visibility = View.GONE
+                recyclerView.layoutManager = LinearLayoutManager(requireActivity())
+                recyclerView.adapter = adapter
+            }
+        }
+    }
+
     private fun updateTextViewBackground() {
         val enteredHeight = height ?: return
         val enteredWeight = weight ?: return
@@ -142,6 +178,7 @@ class RegistrationFragment : Fragment() {
             binding.ButtonRegistration.setBackgroundResource(R.drawable.item_decoration)
         }
     }
+
     companion object {
         @JvmStatic
         fun newInstance() = RegistrationFragment()

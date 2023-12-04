@@ -1,10 +1,14 @@
 <resources>
     <string name="app_name">FitEat</string>
-    <string-array name="mealtime">
-        <item>только что</item>
-        <item>пол часа назад</item>
-        <item>час назад</item>
-        <item>2 часа назад</item>
-        <item>более чем 3 часа назад</item>
-    </string-array>
+    <string name="registration_name">Впервые в нашем\n приложении?</string>
+    <string name="name">Введите ваше имя:</string>
+    <string name="user_name">имя пользователя</string>
+    <string name="height">Введите ваше рост:</string>
+    <string name="user_height">рост пользователя</string>
+    <string name="sm">см</string>
+    <string name="weight">Введите ваше вес:</string>
+    <string name="user_weight">вес пользователя</string>
+    <string name="kg">кг</string>
+    <string name="mealTime">Когда вы последний раз кушали:</string>
+    <string name="button_continue">Продолжить</string>
 </resources>

@@ -7,8 +7,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.valance.fiteat.R
 
-class RecyclerViewComponentsWork(private val dataList: List<ComponentsWorkData>)
-    : RecyclerView.Adapter<RecyclerViewComponentsWork.ViewHolder>() {
+class FoodComponentsAdapter(private val dataList: List<FoodComponentsData>) : RecyclerView.Adapter<FoodComponentsAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -17,10 +16,10 @@ class RecyclerViewComponentsWork(private val dataList: List<ComponentsWorkData>)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val data1 = dataList[position]
+        val data = dataList[position]
 
-        holder.line1TextView.text = data1.items
-        holder.squirrelsTextView.text = data1.values
+        holder.line1TextView.text = data.items
+        holder.squirrelsTextView.text = data.values
     }
 
     override fun getItemCount(): Int {
