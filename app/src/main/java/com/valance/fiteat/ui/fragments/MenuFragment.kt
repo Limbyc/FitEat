@@ -52,7 +52,6 @@ class MenuFragment: Fragment() {
             UserComponentsData("Вода", "a"),
             UserComponentsData("Прием", "a"),
             UserComponentsData("Вес", "a"),
-            UserComponentsData("Деятельность", "a"),
             UserComponentsData("Индекс. масса", "a")
         )
         val recyclerAdapter1 = UserComponentsAdapter(data1)
@@ -60,6 +59,13 @@ class MenuFragment: Fragment() {
 
         binding.Emotion.setOnClickListener{
             showInputDialog()
+        }
+
+        binding.plusFood.setOnClickListener{
+            requireActivity().supportFragmentManager
+                .beginTransaction()
+                .replace(R.id.Fragment_container, UserStaticticFragment.newInstance())
+                .commit()
         }
     }
     private fun showInputDialog() {

@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">FitEat</string>
+
+    <!--RegistrationFragment-->
     <string name="registration_name">Впервые в нашем\n приложении?</string>
     <string name="name">Введите ваше имя:</string>
     <string name="user_name">имя пользователя</string>
@@ -11,4 +13,5 @@
     <string name="kg">кг</string>
     <string name="mealTime">Когда вы последний раз кушали:</string>
     <string name="button_continue">Продолжить</string>
+
 </resources>

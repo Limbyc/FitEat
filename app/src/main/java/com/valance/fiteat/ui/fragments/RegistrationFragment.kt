@@ -3,31 +3,40 @@ package com.valance.fiteat.ui.fragments
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.valance.fiteat.ui.other.FitEatApp
 import com.valance.fiteat.R
-import com.valance.fiteat.databinding.FragmentRegistrationBinding
+import com.valance.fiteat.databinding.RegistrationFragmentBinding
+import com.valance.fiteat.db.dao.UserDao
+import com.valance.fiteat.db.entity.User
 import com.valance.fiteat.ui.adapter.TimeMealAdapter
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 
 class RegistrationFragment : Fragment() {
     private var height: Int? = null
     private var weight: Int? = null
-    private var isListVisible = false
+    private lateinit var userDao: UserDao
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: TimeMealAdapter
-    private lateinit var binding: FragmentRegistrationBinding
+    private lateinit var binding: RegistrationFragmentBinding
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentRegistrationBinding.inflate(inflater, container, false)
+        binding = RegistrationFragmentBinding.inflate(inflater, container, false)
+
+        val mainDB = (requireActivity().application as FitEatApp).database
+        userDao = mainDB.userDao()
 
         setupEditTextValidation()
 
@@ -147,18 +156,17 @@ class RegistrationFragment : Fragment() {
                 recyclerView.visibility = View.GONE
                 binding.IvUpArrow.visibility = View.GONE
                 binding.IvDownArrow.visibility = View.VISIBLE
-                recyclerView.layoutManager = LinearLayoutManager(requireActivity())
-                recyclerView.adapter = adapter
             } else {
                 recyclerView.visibility = View.VISIBLE
                 binding.IvUpArrow.visibility = View.VISIBLE
                 binding.IvDownArrow.visibility = View.GONE
-                recyclerView.layoutManager = LinearLayoutManager(requireActivity())
-                recyclerView.adapter = adapter
             }
         }
+        recyclerView.layoutManager = LinearLayoutManager(requireActivity())
+        recyclerView.adapter = adapter
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     private fun updateTextViewBackground() {
         val enteredHeight = height ?: return
         val enteredWeight = weight ?: return
@@ -169,10 +177,25 @@ class RegistrationFragment : Fragment() {
         if (isHeightValid && isWeightValid && isNameEntered) {
             binding.ButtonRegistration.setBackgroundResource(R.drawable.item_decoration_button)
             binding.ButtonRegistration.setOnClickListener {
-                requireActivity().supportFragmentManager
-                    .beginTransaction()
-                    .replace(R.id.Fragment_container, MenuFragment.newInstance())
-                    .commit()
+                val userName = binding.EtName.text.toString()
+                val userHeight = binding.EtHeight.text.toString().toIntOrNull() ?: 0
+                val userWeight = binding.EtWeight.text.toString().toIntOrNull() ?: 0
+                val userMealTime = binding.TVMealTime.text.toString()
+
+                val user = User(id = null , name = userName, height = userHeight, weight = userWeight, time = userMealTime)
+
+                GlobalScope.launch {
+                    try {
+                        userDao.insertUser(user)
+                        requireActivity().supportFragmentManager
+                            .beginTransaction()
+                            .replace(R.id.Fragment_container, MenuFragment.newInstance())
+                            .commit()
+                        Log.d("UserInsertion","Complete to insert user:" )
+                    } catch (e: Exception) {
+                        Log.e("UserInsertion", "Failed to insert user: ${e.message}")
+                    }
+                }
             }
         } else {
             binding.ButtonRegistration.setBackgroundResource(R.drawable.item_decoration)

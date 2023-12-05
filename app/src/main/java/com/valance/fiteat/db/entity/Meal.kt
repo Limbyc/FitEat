@@ -9,19 +9,17 @@ data class Meal(
     var id: Int? = null,
     @ColumnInfo(name = "name")
     var name: String,
-    @ColumnInfo (name = "size")
-    var size: Int,
     @ColumnInfo (name = "calories")
     var calories: Int,
     @ColumnInfo (name = "squirrels")
-    var squirrels: Int,
+    var squirrels: String,
     @ColumnInfo (name = "fats")
-    var fats: Int,
+    var fats: String,
     @ColumnInfo (name = "carbohydrates")
-    var carbohydrates: Int,
+    var carbohydrates: String,
     @ColumnInfo (name = "fibre")
-    var fibre: Int,
+    var fibre: String,
     @ColumnInfo (name = "sugar")
-    var sugar: Int,
+    var sugar: String,
 )
 

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/TVNameFood"
+        android:layout_width="match_parent"
+        android:layout_height="46dp"
+        android:background="@drawable/item_decoration"
+        android:textSize="13sp"
+        android:textColor="@color/black"
+        android:paddingStart="20dp"
+        android:gravity="center_vertical"
+        android:fontFamily="@font/montserrat_light"
+        />
+
+    <View
+        android:id="@+id/plusFood"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_gravity="bottom|end"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/circle_background" />
+
+    <ImageView
+        android:id="@+id/plusEat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_gravity="bottom|end"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:src="@drawable/plus" />
+
+    <TextView
+        android:id="@+id/Gram"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/TVNameFood"
+        android:layout_marginEnd="4dp"
+        android:layout_marginBottom="7dp"
+        android:layout_toStartOf="@+id/plusFood"
+        android:fontFamily="@font/montserrat_light"
+        android:text="100 мл(г)" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/TVNameFood"
+        android:layout_marginEnd="4dp"
+        android:layout_marginBottom="20dp"
+        android:layout_toStartOf="@+id/plusFood"
+        android:fontFamily="@font/montserrat_light"
+        android:text="ккал" />
+
+    <TextView
+        android:id="@+id/Kalori"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/TVNameFood"
+        android:layout_marginEnd="47dp"
+        android:layout_marginBottom="20dp"
+        android:layout_toStartOf="@+id/plusFood"
+        android:fontFamily="@font/montserrat_light" />
+
+
+</RelativeLayout>

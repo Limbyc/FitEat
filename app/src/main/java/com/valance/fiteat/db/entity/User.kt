@@ -15,5 +15,5 @@ data class User(
     @ColumnInfo(name = "weight")
     var weight: Int,
     @ColumnInfo(name = "eatingTime")
-    var time: Int
+    var time: String
 )
