@@ -30,39 +30,13 @@ abstract class MainDB: RoomDatabase() {
         }
 
         private fun createDatabase(context: Context): MainDB {
-            val databaseName = "FitEat.db"
-            val dbPath = context.getDatabasePath(databaseName).absolutePath
-
-
-            if (!checkDatabaseExists(context, dbPath)) {
-                copyDatabaseFromAssets(context, databaseName, dbPath)
-            }
-
+            val databaseName = "FitEat"
             return Room.databaseBuilder(
                 context.applicationContext,
                 MainDB::class.java,
                 databaseName
             ).fallbackToDestructiveMigration()
                 .build()
-        }
-
-        private fun checkDatabaseExists(context: Context, dbPath: String): Boolean {
-            val file = File(dbPath)
-            return file.exists()
-        }
-
-        private fun copyDatabaseFromAssets(context: Context, databaseName: String, dbPath: String) {
-            try {
-                val inputStream: InputStream = context.assets.open(databaseName)
-                val outputStream: OutputStream = FileOutputStream(dbPath)
-                inputStream.copyTo(outputStream)
-
-                inputStream.close()
-                outputStream.flush()
-                outputStream.close()
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
         }
     }
 }

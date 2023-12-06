@@ -13,4 +13,8 @@ interface UserDao {
     suspend fun insertUser(user: User)
     @Query("SELECT * FROM users")
     fun getAllUser(): Flow<List<User>>
+
+    @Query("SELECT * FROM users WHERE name = :name LIMIT 1")
+    fun getUserByName(name: String): User?
+
 }

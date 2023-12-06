@@ -8,22 +8,28 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.valance.fiteat.R
 import com.valance.fiteat.databinding.UserStatisticFragmentBinding
 import com.valance.fiteat.db.MainDB
+import com.valance.fiteat.db.dao.MealDao
 import com.valance.fiteat.ui.adapter.MealAdapter
+import com.valance.fiteat.FitEatApp
 import kotlinx.coroutines.launch
 
 class UserStaticticFragment : Fragment(){
 
     private lateinit var binding: UserStatisticFragmentBinding
+    private lateinit var mealDao: MealDao
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         binding = UserStatisticFragmentBinding.inflate(inflater, container, false)
+
+      //  val mainDB = (requireActivity().application as FitEatApp).database
+      //  mealDao = mainDB.mealDao()
+
         return binding.root
     }
 

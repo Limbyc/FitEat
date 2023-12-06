@@ -15,6 +15,7 @@ class TimeMealAdapter(
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val textView: TextView = view.findViewById(R.id.timeTextView)
 
+
         init {
             view.setOnClickListener {
                 val position = adapterPosition
