@@ -64,7 +64,7 @@ class MenuFragment: Fragment() {
         binding.plusFood.setOnClickListener{
             requireActivity().supportFragmentManager
                 .beginTransaction()
-                .replace(R.id.Fragment_container, UserStaticticFragment.newInstance())
+                .replace(R.id.Fragment_container, UserStaticticFragment())
                 .commit()
         }
     }
@@ -88,9 +88,5 @@ class MenuFragment: Fragment() {
         }
 
         dialog.show()
-    }
-    companion object {
-        @JvmStatic
-        fun newInstance() = MenuFragment()
     }
 }

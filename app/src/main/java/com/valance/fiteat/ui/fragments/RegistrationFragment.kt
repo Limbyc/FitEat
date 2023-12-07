@@ -7,6 +7,9 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -25,7 +28,6 @@ import kotlinx.coroutines.withContext
 class RegistrationFragment : Fragment() {
     private var height: Int? = null
     private var weight: Int? = null
-    private lateinit var userDao: UserDao
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: TimeMealAdapter
     private lateinit var binding: RegistrationFragmentBinding
@@ -36,8 +38,6 @@ class RegistrationFragment : Fragment() {
     ): View {
         binding = RegistrationFragmentBinding.inflate(inflater, container, false)
 
-      //  val mainDB = (requireActivity().application as FitEatApp).database
-      //  userDao = mainDB.userDao()
 
         setupEditTextValidation()
 
@@ -66,8 +66,6 @@ class RegistrationFragment : Fragment() {
             showOrHideList()
             updateTextViewBackground()
         }
-
-
 
         activity?.window?.apply {
             decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
@@ -180,50 +178,20 @@ class RegistrationFragment : Fragment() {
         if (isHeightValid && isWeightValid && isNameEntered && isMealTimeEntered) {
             binding.ButtonRegistration.setBackgroundResource(R.drawable.item_decoration_button)
             binding.ButtonRegistration.setOnClickListener {
-                val userName = binding.EtName.text.toString()
-                val userHeight = binding.EtHeight.text.toString().toIntOrNull() ?: 0
-                val userWeight = binding.EtWeight.text.toString().toIntOrNull() ?: 0
-                val userMealTime = binding.TVMealTime.text.toString()
-
-
-                val user = User(id = null , name = userName, height = userHeight, weight = userWeight, time = userMealTime)
+//                val userName = binding.EtName.text.toString()
+//                val userHeight = binding.EtHeight.text.toString().toIntOrNull() ?: 0
+//                val userWeight = binding.EtWeight.text.toString().toIntOrNull() ?: 0
+//                val userMealTime = binding.TVMealTime.text.toString()
 
                 lifecycleScope.launch {
-                    try {
-                        val insertedUserId = withContext(Dispatchers.IO) {
-                            userDao.insertUser(user)
-                        }
-//                          Проверка вставки в базу данных
-//                        Log.d("Добавлен новый пользователь:", "${user.name} , ${user.height}, ${user.weight} ")
-//
-//                        val insertedUser = withContext(Dispatchers.IO) {
-//                            userDao.getUserByName(user.name)
-//                        }
-//
-//                        if (insertedUser != null) {
-//                            Log.d("UserInsertion", "User successfully inserted: ${insertedUser.name}, ${insertedUser.height}, ${insertedUser.weight}")
-//                        } else {
-//                            Log.e("UserInsertion", "Failed to find inserted user")
-//                        }
-
                         requireActivity().supportFragmentManager
                             .beginTransaction()
-                            .replace(R.id.Fragment_container, MenuFragment.newInstance())
+                            .replace(R.id.Fragment_container, MenuFragment())
                             .commit()
-                        Log.d("UserInsertion","Complete to insert user:" )
-                    } catch (e: Exception) {
-                        Log.e("UserInsertion", "Failed to insert user: ${e.message}")
-                    }
                 }
-
             }
         } else {
             binding.ButtonRegistration.setBackgroundResource(R.drawable.item_decoration)
         }
-    }
-
-    companion object {
-        @JvmStatic
-        fun newInstance() = RegistrationFragment()
     }
 }
