@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -18,7 +19,12 @@ import com.valance.fiteat.ui.adapter.UserComponentsData
 import com.valance.fiteat.ui.adapter.UserComponentsAdapter
 
 class MenuFragment: Fragment() {
+    private var numberOfOpenDialogs = 0
     private lateinit var binding: MenuFragmentBinding
+    private lateinit var dialog: Dialog
+    private lateinit var etNewWeight: EditText
+    private lateinit var confirmButton: TextView
+    private lateinit var cancelButton: TextView
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -68,25 +74,64 @@ class MenuFragment: Fragment() {
                 .commit()
         }
     }
-    private fun showInputDialog() {
-        val dialog = Dialog(requireContext(), R.style.CustomDialog)
+
+
+    private fun setupChangeWeightDialog() {
+        dialog = Dialog(requireContext(), R.style.CustomDialog)
         dialog.setContentView(R.layout.change_weight_dialog)
 
-        val etNewWeight: EditText = dialog.findViewById(R.id.EtNewWeight)
-        val confirmButton: TextView = dialog.findViewById(R.id.confirm)
-        val cancelButton: TextView = dialog.findViewById(R.id.cancel)
+        etNewWeight = dialog.findViewById(R.id.EtNewWeight)
+        confirmButton = dialog.findViewById(R.id.confirm)
+        cancelButton = dialog.findViewById(R.id.cancel)
 
-
+        numberOfOpenDialogs++
         confirmButton.setOnClickListener {
-            val newWeight = etNewWeight.text.toString()
+            val newWeight = etNewWeight.text.toString().trim()
 
-            dialog.setContentView(R.layout.weight_is_recorded_dialog)
+            if (newWeight.isNotEmpty() && !newWeight.contains(" ")) {
+                setupWeightRecordedDialog()
+            } else {
+                Toast.makeText(requireContext(), "Введите корректный вес", Toast.LENGTH_SHORT).show()
+            }
         }
 
         cancelButton.setOnClickListener {
+            checkAndPerformUpdate()
             dialog.dismiss()
+            numberOfOpenDialogs--
         }
 
         dialog.show()
+    }
+
+    private fun updateInterface(){
+        binding.Emotion.text = "Сегодня вы уже внесли свой вес"
+        binding.SmileWeight.visibility = View.VISIBLE
+        binding.SadEmotion.visibility = View.GONE
+        binding.Emotion.isEnabled = false
+    }
+
+    private fun setupWeightRecordedDialog() {
+        dialog.setContentView(R.layout.weight_is_recorded_dialog)
+
+        val changeWeight: TextView = dialog.findViewById(R.id.change_weight)
+
+        changeWeight.setOnClickListener {
+            dialog.dismiss()
+            setupChangeWeightDialog()
+        }
+
+        dialog.setOnDismissListener {
+            numberOfOpenDialogs--
+            checkAndPerformUpdate()
+        }
+    }
+    private fun checkAndPerformUpdate() {
+        if (numberOfOpenDialogs == 0) {
+            updateInterface()
+        }
+    }
+    private fun showInputDialog() {
+        setupChangeWeightDialog()
     }
 }
