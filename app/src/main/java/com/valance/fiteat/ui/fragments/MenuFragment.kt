@@ -1,7 +1,12 @@
 package com.valance.fiteat.ui.fragments
 
+import android.app.AlertDialog
 import android.app.Dialog
 import android.os.Bundle
+import android.text.Editable
+import android.text.InputFilter
+import android.text.InputType
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -25,6 +30,8 @@ class MenuFragment: Fragment() {
     private lateinit var etNewWeight: EditText
     private lateinit var confirmButton: TextView
     private lateinit var cancelButton: TextView
+    var isWeightValid = false
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -63,75 +70,78 @@ class MenuFragment: Fragment() {
         val recyclerAdapter1 = UserComponentsAdapter(data1)
         recyclerView1.adapter = recyclerAdapter1
 
-        binding.Emotion.setOnClickListener{
-            showInputDialog()
+        binding.Emotion.setOnClickListener {
+            val layoutInflater = LayoutInflater.from(requireContext())
+            val dialogView = layoutInflater.inflate(R.layout.weight_change_dialog, null)
+
+            val builder = AlertDialog.Builder(requireContext(), R.style.CustomDialog)
+            builder.setView(dialogView)
+            val dialog = builder.create()
+
+            val confirmButton: TextView = dialogView.findViewById(R.id.confirm)
+            val cancelButton: TextView = dialogView.findViewById(R.id.cancel)
+            val newWeightEditText: EditText = dialogView.findViewById(R.id.EtNewWeight)
+
+            newWeightEditText.addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
+                override fun afterTextChanged(s: Editable?) {
+                    val input = s.toString().replace(" ", "")
+                    if (input.isNotEmpty()) {
+                        val value = input.toIntOrNull()
+                        isWeightValid = value in 30..200
+                        confirmButton.isEnabled = isWeightValid
+                    } else {
+                        isWeightValid = false
+                        confirmButton.isEnabled = false
+                    }
+                }
+            })
+
+            confirmButton.setOnClickListener {
+                val newWeight = newWeightEditText.text.toString()
+                if (isWeightValid) {
+                    dialog.dismiss()
+                    binding.SadEmotion.visibility = View.GONE
+                    binding.SmileWeight.visibility = View.VISIBLE
+                    binding.TvWeightConfirm.visibility = View.VISIBLE
+                    binding.Emotion.text = "Желаете изменить?"
+                }
+            }
+
+            cancelButton.setOnClickListener {
+                dialog.dismiss()
+            }
+
+            dialog.show()
         }
 
-        binding.plusFood.setOnClickListener{
+
+        binding.Water.setOnClickListener {
+            showWaterRecallDialog()
+        }
+
+        fun openUserStatisticFragment() {
             requireActivity().supportFragmentManager
                 .beginTransaction()
                 .replace(R.id.Fragment_container, UserStaticticFragment())
                 .commit()
         }
-    }
 
-
-    private fun setupChangeWeightDialog() {
-        dialog = Dialog(requireContext(), R.style.CustomDialog)
-        dialog.setContentView(R.layout.change_weight_dialog)
-
-        etNewWeight = dialog.findViewById(R.id.EtNewWeight)
-        confirmButton = dialog.findViewById(R.id.confirm)
-        cancelButton = dialog.findViewById(R.id.cancel)
-
-        numberOfOpenDialogs++
-        confirmButton.setOnClickListener {
-            val newWeight = etNewWeight.text.toString().trim()
-
-            if (newWeight.isNotEmpty() && !newWeight.contains(" ")) {
-                setupWeightRecordedDialog()
-            } else {
-                Toast.makeText(requireContext(), "Введите корректный вес", Toast.LENGTH_SHORT).show()
-            }
+        binding.plusFood.setOnClickListener{
+            openUserStatisticFragment()
         }
-
-        cancelButton.setOnClickListener {
-            checkAndPerformUpdate()
-            dialog.dismiss()
-            numberOfOpenDialogs--
-        }
-
-        dialog.show()
-    }
-
-    private fun updateInterface(){
-        binding.Emotion.text = "Сегодня вы уже внесли свой вес"
-        binding.SmileWeight.visibility = View.VISIBLE
-        binding.SadEmotion.visibility = View.GONE
-        binding.Emotion.isEnabled = false
-    }
-
-    private fun setupWeightRecordedDialog() {
-        dialog.setContentView(R.layout.weight_is_recorded_dialog)
-
-        val changeWeight: TextView = dialog.findViewById(R.id.change_weight)
-
-        changeWeight.setOnClickListener {
-            dialog.dismiss()
-            setupChangeWeightDialog()
-        }
-
-        dialog.setOnDismissListener {
-            numberOfOpenDialogs--
-            checkAndPerformUpdate()
+        binding.plusFood1.setOnClickListener{
+            openUserStatisticFragment()
         }
     }
-    private fun checkAndPerformUpdate() {
-        if (numberOfOpenDialogs == 0) {
-            updateInterface()
-        }
+    private fun showWaterRecallDialog() {
+        val dialogBuilder = AlertDialog.Builder(requireContext(), R.style.WaterRecall)
+        val dialogView = layoutInflater.inflate(R.layout.water_recall_dialog, null)
+        dialogBuilder.setView(dialogView)
+        val alertDialog = dialogBuilder.create()
+        alertDialog.show()
     }
-    private fun showInputDialog() {
-        setupChangeWeightDialog()
-    }
+
 }

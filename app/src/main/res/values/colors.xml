@@ -6,4 +6,5 @@
     <color name="bg_height">#EA4949</color>
     <color name="bg_button">#3CA679</color>
     <color name="text_color">#794848</color>
+    <color name="text_permission">#8C1515</color>
 </resources>

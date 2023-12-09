@@ -1,5 +1,8 @@
 package com.valance.fiteat.ui.fragments
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ValueAnimator
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -7,6 +10,9 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AccelerateInterpolator
+import android.view.animation.DecelerateInterpolator
+import androidx.core.animation.doOnEnd
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -23,9 +29,11 @@ import com.valance.fiteat.ui.adapter.TimeMealAdapter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.exp
 
 
 class RegistrationFragment : Fragment() {
+    private var isListExpanded = false
     private var height: Int? = null
     private var weight: Int? = null
     private lateinit var recyclerView: RecyclerView
@@ -58,17 +66,13 @@ class RegistrationFragment : Fragment() {
 
         binding.TVMealTime.setOnClickListener{
             showOrHideList()
-        }
+            }
 
         recyclerView = binding.recyclerViewMealTime
         adapter = TimeMealAdapter(yourDataList) { selectedItem ->
             binding.TVMealTime.text = selectedItem
             showOrHideList()
             updateTextViewBackground()
-        }
-
-        activity?.window?.apply {
-            decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
         }
 
         //Height
@@ -121,7 +125,6 @@ class RegistrationFragment : Fragment() {
                 binding.ButtonRegistration.isEnabled = isHeightValid && isWeightValid
             }
         })
-
         binding.EtWeight.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
@@ -145,25 +148,76 @@ class RegistrationFragment : Fragment() {
                 binding.ButtonRegistration.isEnabled = isHeightValid && isWeightValid
             }
         })
-
     }
-
 
     //RecyclerView
     private fun showOrHideList() {
-        if (::recyclerView.isInitialized) {
-            if (recyclerView.visibility == View.VISIBLE) {
-                recyclerView.visibility = View.GONE
-                binding.IvUpArrow.visibility = View.GONE
-                binding.IvDownArrow.visibility = View.VISIBLE
-            } else {
-                recyclerView.visibility = View.VISIBLE
-                binding.IvUpArrow.visibility = View.VISIBLE
-                binding.IvDownArrow.visibility = View.GONE
-            }
+        if (!::recyclerView.isInitialized) return
+
+        if (isListExpanded) {
+            collapseList()
+            isListExpanded = false
+        } else {
+            expandList()
+            isListExpanded = true
         }
         recyclerView.layoutManager = LinearLayoutManager(requireActivity())
         recyclerView.adapter = adapter
+    }
+
+    private fun expandList() {
+        val targetExpandedHeight = convertDpToPx(200)
+        val initialHeight = binding.recyclerViewMealTime.height
+
+        val animator = ValueAnimator.ofInt(initialHeight, targetExpandedHeight).apply {
+            interpolator = AccelerateInterpolator()
+            duration = 500
+            addUpdateListener {
+                val animatedValue = it.animatedValue as Int
+                val layoutParams = binding.recyclerViewMealTime.layoutParams
+                layoutParams.height = animatedValue
+                binding.recyclerViewMealTime.layoutParams = layoutParams
+                binding.recyclerViewMealTime.requestLayout()
+            }
+        }
+        animator.start()
+
+        recyclerView.visibility = View.VISIBLE
+        binding.IvUpArrow.visibility = View.VISIBLE
+        binding.IvDownArrow.visibility = View.GONE
+    }
+    private fun collapseList() {
+        val targetCollapsedHeight = convertDpToPx(0)
+        val initialHeight = binding.recyclerViewMealTime.height
+
+        val animator = ValueAnimator.ofInt(initialHeight, targetCollapsedHeight).apply {
+            interpolator = DecelerateInterpolator()
+            duration = 500
+            addUpdateListener { valueAnimator ->
+                val animatedValue = valueAnimator.animatedValue as Int
+                val layoutParams = binding.recyclerViewMealTime.layoutParams
+                layoutParams.height = animatedValue
+                binding.recyclerViewMealTime.layoutParams = layoutParams
+                binding.recyclerViewMealTime.requestLayout()
+            }
+            addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    super.onAnimationEnd(animation)
+                    val layoutParams = binding.recyclerViewMealTime.layoutParams
+                    layoutParams.height = targetCollapsedHeight
+                    binding.recyclerViewMealTime.layoutParams = layoutParams
+
+                    // Hide the RecyclerView after the animation ends
+                    recyclerView.visibility = View.GONE
+                    binding.IvUpArrow.visibility = View.GONE
+                    binding.IvDownArrow.visibility = View.VISIBLE
+                }
+            })
+        }
+        animator.start()
+    }
+    private fun convertDpToPx(dp: Int): Int {
+        return (dp * resources.displayMetrics.density).toInt()
     }
 
     private fun updateTextViewBackground() {

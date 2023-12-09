@@ -3,4 +3,7 @@
     <style name="CustomDialog" parent="Theme.AppCompat.Dialog">
         <item name="android:windowBackground">@drawable/item_decoration</item>
     </style>
+    <style name="WaterRecall" parent="Theme.AppCompat.Dialog">
+        <item name="android:windowBackground">@drawable/drinking_regime</item>
+    </style>
 </resources>

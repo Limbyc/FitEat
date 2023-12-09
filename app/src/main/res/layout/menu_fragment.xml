@@ -18,9 +18,8 @@
             android:text="Рекомендации"
             android:textColor="@color/black"
             android:gravity="center"
-            android:textSize="20sp" />
-
-
+            android:textSize="20sp"
+            />
 
         <TextView
             android:id="@+id/Water"
@@ -190,6 +189,7 @@
 
         </FrameLayout>
 
+
         <TextView
             android:id="@+id/Emotion"
             android:layout_width="323dp"
@@ -199,11 +199,12 @@
             android:textColor="@color/text_color"
             android:fontFamily="@font/montserrat_medium"
             android:gravity="center|bottom"
-            android:text="Вы еще не внесли\n информацию о весе сегодня"
             android:layout_marginStart="18dp"
             android:layout_marginTop="17dp"
             android:paddingBottom="18dp"
-            android:background="@drawable/item_decoration" />
+            android:background="@drawable/item_decoration"
+            android:text="Вы еще не внесли\n информацию о весе сегодня"
+            />
 
         <ImageView
             android:id="@+id/Sad_Emotion"
@@ -219,7 +220,7 @@
             android:layout_marginEnd="134dp"
             android:layout_marginBottom="56dp"
             android:background="@drawable/emotion"
-            android:visibility="visible"/>
+            />
 
         <ImageView
             android:id="@+id/SmileWeight"
@@ -237,8 +238,17 @@
             android:background="@drawable/smile"
             android:visibility="gone"/>
 
-
-
+        <TextView
+            android:id="@+id/TvWeightConfirm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@+id/Emotion"
+            android:layout_alignEnd="@+id/Emotion"
+            android:layout_marginTop="77dp"
+            android:layout_marginEnd="117dp"
+            android:fontFamily="@font/montserrat_light"
+            android:text="Вес записан"
+            android:visibility="gone"/>
     </RelativeLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

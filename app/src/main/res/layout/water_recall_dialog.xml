@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:id="@+id/Water_recall_dialog"
+        android:layout_width="300dp"
+        android:layout_height="370dp"
+        android:background="@drawable/drinking_regime"
+        android:padding="11dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/Water_recall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/montserrat_bold"
+            android:gravity="center"
+            android:text="Питьевой режим"
+            android:textSize="15sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/Water_recall"
+            android:layout_marginStart="6dp"
+            android:layout_marginTop="25dp"
+            android:fontFamily="@font/montserrat_light"
+            android:gravity="center"
+            android:text="Выбранное время \n напоминаний"
+            android:textSize="13sp" />
+
+        <EditText
+            android:layout_width="96dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/Water_recall"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="18dp"
+            android:layout_marginEnd="40dp"
+            android:gravity="center"
+            android:hint="нет"
+            android:textColor="@color/text_color"
+            android:textSize="13sp" />
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/Water_recall"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="29dp"
+            android:layout_marginEnd="7dp"
+            android:background="@drawable/down_arrow" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/Water_recall"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="136dp"
+            android:fontFamily="@font/montserrat_light"
+            android:gravity="center"
+            android:text="Когда последний раз вы \n пили воду?"
+            android:textSize="15sp" />
+
+        <EditText
+            android:id="@+id/TimeWater"
+            android:layout_width="83dp"
+            android:layout_height="26dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginEnd="96dp"
+            android:layout_marginBottom="103dp"
+            android:background="@drawable/item_decoration"
+            android:gravity="center"
+            android:hint="00:00"
+            />
+
+        <TextView
+            android:id="@+id/buttonRemember"
+            android:layout_width="223dp"
+            android:layout_height="33dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="280dp"
+            android:layout_marginEnd="26dp"
+            android:background="@drawable/item_decoration"
+            android:gravity="center"
+            android:text="Сохранить"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/permission"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/buttonRemember"
+            android:layout_alignParentBottom="true"
+            android:layout_marginTop="1dp"
+            android:layout_marginBottom="0dp"
+            android:gravity="center"
+            android:text="Вы не приняли разрешение на \n отправку уведомлений"
+            android:textColor="@color/text_permission"
+            android:textSize="12sp" />
+    </RelativeLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
