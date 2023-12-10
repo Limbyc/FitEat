@@ -12,8 +12,10 @@ import com.valance.fiteat.databinding.UserStatisticFragmentBinding
 import com.valance.fiteat.db.AppDatabase
 import com.valance.fiteat.db.dao.MealDao
 import com.valance.fiteat.ui.adapter.MealAdapter
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class UserStaticticFragment : Fragment(){
 
     private lateinit var binding: UserStatisticFragmentBinding

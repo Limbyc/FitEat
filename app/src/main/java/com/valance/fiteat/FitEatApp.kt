@@ -1,9 +1,17 @@
 package com.valance.fiteat
 
-import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
+import android.app.Application
 
 @HiltAndroidApp
-class FitEatApp : Application()  {
-
+class FitEatApp : Application() {
+        companion object {
+                lateinit var instance: FitEatApp
+                        private set
         }
+
+        override fun onCreate() {
+                super.onCreate()
+                instance = this
+        }
+}

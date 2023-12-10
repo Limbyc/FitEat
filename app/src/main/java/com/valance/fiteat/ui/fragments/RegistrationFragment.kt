@@ -12,26 +12,21 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
-import androidx.core.animation.doOnEnd
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
+import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.valance.fiteat.FitEatApp
 import com.valance.fiteat.R
 import com.valance.fiteat.databinding.RegistrationFragmentBinding
-import com.valance.fiteat.db.dao.UserDao
 import com.valance.fiteat.db.entity.User
 import com.valance.fiteat.ui.adapter.TimeMealAdapter
-import kotlinx.coroutines.Dispatchers
+import com.valance.fiteat.ui.viewmodels.RegistrationViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import kotlin.math.exp
 
-
+@AndroidEntryPoint
 class RegistrationFragment : Fragment() {
     private var isListExpanded = false
     private var height: Int? = null
@@ -39,13 +34,14 @@ class RegistrationFragment : Fragment() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: TimeMealAdapter
     private lateinit var binding: RegistrationFragmentBinding
+    private lateinit var registrationViewModel: RegistrationViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         binding = RegistrationFragmentBinding.inflate(inflater, container, false)
-
+        registrationViewModel = ViewModelProvider(this)[RegistrationViewModel::class.java]
 
         setupEditTextValidation()
 
@@ -232,17 +228,26 @@ class RegistrationFragment : Fragment() {
         if (isHeightValid && isWeightValid && isNameEntered && isMealTimeEntered) {
             binding.ButtonRegistration.setBackgroundResource(R.drawable.item_decoration_button)
             binding.ButtonRegistration.setOnClickListener {
-//                val userName = binding.EtName.text.toString()
-//                val userHeight = binding.EtHeight.text.toString().toIntOrNull() ?: 0
-//                val userWeight = binding.EtWeight.text.toString().toIntOrNull() ?: 0
-//                val userMealTime = binding.TVMealTime.text.toString()
+                val userName = binding.EtName.text.toString()
+                val userHeight = binding.EtHeight.text.toString().toIntOrNull() ?: 0
+                val userWeight = binding.EtWeight.text.toString().toIntOrNull() ?: 0
+                val userMealTime = binding.TVMealTime.text.toString()
+
+                val user = User(id, userName, userHeight, userWeight, userMealTime)
+
 
                 lifecycleScope.launch {
+                    try {
+                        registrationViewModel.addUser(user)
                         requireActivity().supportFragmentManager
                             .beginTransaction()
                             .replace(R.id.Fragment_container, MenuFragment())
                             .commit()
+                    } catch (exception: Exception) {
+                        Log.e("e", exception.message.toString())
+                    }
                 }
+
             }
         } else {
             binding.ButtonRegistration.setBackgroundResource(R.drawable.item_decoration)

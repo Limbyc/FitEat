@@ -22,7 +22,9 @@ import com.valance.fiteat.ui.adapter.FoodComponentsData
 import com.valance.fiteat.databinding.MenuFragmentBinding
 import com.valance.fiteat.ui.adapter.UserComponentsData
 import com.valance.fiteat.ui.adapter.UserComponentsAdapter
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MenuFragment: Fragment() {
     private var numberOfOpenDialogs = 0
     private lateinit var binding: MenuFragmentBinding
