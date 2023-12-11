@@ -9,6 +9,7 @@
     tools:context=".MainActivity">
 
     <EditText
+        android:id="@+id/search_bar"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:hint="Поиск"
@@ -16,7 +17,9 @@
         android:fontFamily="@font/montserrat_light"
         android:textSize="13sp"
         android:paddingStart="16dp"
-        android:drawableEnd="@drawable/search" />
+        android:drawableEnd="@drawable/search"
+        android:maxLines="1"
+        android:inputType="text"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/country_rv"

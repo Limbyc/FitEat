@@ -7,7 +7,6 @@ import dagger.Provides
 
 
 interface AppRepository {
-
     //Получение отдельно списка еды
     suspend fun getAllMeals() : List<Meal>
 
@@ -17,8 +16,5 @@ interface AppRepository {
     suspend fun getHeight(userId: Int): UserMetrics?
     //Получение отдельно свойств продуктов
     suspend fun getMealById(mealId: Int): Meal
-
     suspend fun insertUser(user: User)
-
-
 }

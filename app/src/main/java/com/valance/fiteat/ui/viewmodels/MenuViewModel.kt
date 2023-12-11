@@ -11,6 +11,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MenuViewModel @Inject constructor(private val appRepository: AppRepository) : ViewModel() {
 
+
     suspend fun getWeight(userId: Int): UserMetrics? {
         return appRepository.getWeight(userId)
     }

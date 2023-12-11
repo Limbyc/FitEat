@@ -14,6 +14,8 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.valance.fiteat.R
@@ -22,16 +24,15 @@ import com.valance.fiteat.ui.adapter.FoodComponentsData
 import com.valance.fiteat.databinding.MenuFragmentBinding
 import com.valance.fiteat.ui.adapter.UserComponentsData
 import com.valance.fiteat.ui.adapter.UserComponentsAdapter
+import com.valance.fiteat.ui.viewmodels.MenuViewModel
+import com.valance.fiteat.ui.viewmodels.RegistrationViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MenuFragment: Fragment() {
-    private var numberOfOpenDialogs = 0
     private lateinit var binding: MenuFragmentBinding
-    private lateinit var dialog: Dialog
-    private lateinit var etNewWeight: EditText
-    private lateinit var confirmButton: TextView
-    private lateinit var cancelButton: TextView
+    private lateinit var menuViewModel: MenuViewModel
     var isWeightValid = false
 
     override fun onCreateView(
@@ -39,6 +40,9 @@ class MenuFragment: Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = MenuFragmentBinding.inflate(inflater, container, false)
+
+        menuViewModel = ViewModelProvider(this)[MenuViewModel::class.java]
+
         return binding.root
     }
 
@@ -63,14 +67,34 @@ class MenuFragment: Fragment() {
         val layoutManager1 = LinearLayoutManager(requireContext())
         recyclerView1.layoutManager = layoutManager1
 
-        val data1 = listOf(
-            UserComponentsData("Вода", "a"),
-            UserComponentsData("Прием", "a"),
-            UserComponentsData("Вес", "a"),
-            UserComponentsData("Индекс. масса", "a")
-        )
-        val recyclerAdapter1 = UserComponentsAdapter(data1)
-        recyclerView1.adapter = recyclerAdapter1
+
+        lifecycleScope.launch {
+            val userId = id
+            val userWeight = menuViewModel.getWeight(userId)
+            val userHeight = menuViewModel.getHeight(userId)
+
+            userWeight?.let { weightMetrics ->
+                val weight = weightMetrics.weight
+
+                userHeight?.let { heightMetrics ->
+                    val height = heightMetrics.height / 100.0
+                    val bmi = weight / (height * height)
+                    val formattedBMI = String.format("%.2f", bmi)
+                    val weightWithUnit = "$weight кг"
+
+                    val data1 = listOf(
+                        UserComponentsData("Вода", ""),
+                        UserComponentsData("Прием", ""),
+                        UserComponentsData("Вес", weightWithUnit),
+                        UserComponentsData("Индекс. масса", formattedBMI)
+                    )
+
+                    val recyclerAdapter1 = UserComponentsAdapter(data1)
+                    recyclerView1.adapter = recyclerAdapter1
+                }
+            }
+        }
+
 
         binding.Emotion.setOnClickListener {
             val layoutInflater = LayoutInflater.from(requireContext())
@@ -102,6 +126,7 @@ class MenuFragment: Fragment() {
             })
 
             confirmButton.setOnClickListener {
+
                 val newWeight = newWeightEditText.text.toString()
                 if (isWeightValid) {
                     dialog.dismiss()
@@ -118,8 +143,6 @@ class MenuFragment: Fragment() {
 
             dialog.show()
         }
-
-
         binding.Water.setOnClickListener {
             showWaterRecallDialog()
         }

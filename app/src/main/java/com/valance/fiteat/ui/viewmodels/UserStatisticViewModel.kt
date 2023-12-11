@@ -1,5 +1,8 @@
 package com.valance.fiteat.ui.viewmodels
 
+import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.valance.fiteat.domain.AppRepository
@@ -12,10 +15,15 @@ import javax.inject.Inject
 @HiltViewModel
 class UserStatisticViewModel @Inject constructor(private val appRepository: AppRepository) : ViewModel() {
 
-    fun getAllMeals(): List<Meal> {
+    private val _mealsLiveData: MutableLiveData<List<Meal>> = MutableLiveData()
+    val mealsLiveData: LiveData<List<Meal>> = _mealsLiveData
+
+    fun loadAllMeals() {
         viewModelScope.launch {
             val meals = appRepository.getAllMeals()
+            _mealsLiveData.postValue(meals)
+            Log.d("UserStatisticViewModel", "Number of meals loaded: ${meals.size}")
         }
-        return emptyList()
     }
 }
+

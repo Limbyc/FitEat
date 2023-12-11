@@ -15,18 +15,15 @@ class AppRepositoryImpl @Inject constructor(
     override suspend fun getAllMeals(): List<Meal> {
         return mealDao.getAllMeals()
     }
-
     override suspend fun getHeight(userId: Int): UserMetrics? {
         return userDao.getUserMetrics(userId)
     }
-
     override suspend fun getWeight(userId: Int): UserMetrics? {
         return userDao.getUserMetrics(userId)
     }
     override suspend fun getMealById(mealId: Int): Meal{
         return mealDao.getMealById(mealId)
     }
-
     override suspend fun insertUser(user: User) {
         return userDao.insertUser(user)
     }
