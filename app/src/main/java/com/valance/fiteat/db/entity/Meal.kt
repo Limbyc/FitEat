@@ -21,7 +21,9 @@ data class Meal(
     @ColumnInfo(name = "fibre")
     var fibre: Int?,
     @ColumnInfo(name = "sugar")
-    var sugar: Int?
+    var sugar: Int?,
+    @ColumnInfo(name = "fit")
+    var fit: Int?
 )
 
 

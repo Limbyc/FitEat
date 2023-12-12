@@ -40,13 +40,16 @@ class UserStaticticFragment : Fragment(){
         mealsRecyclerView.layoutManager = LinearLayoutManager(requireContext())
 
 
-        foodListAdapter = FoodListAdapter()
+        foodListAdapter = FoodListAdapter { id ->
+
+        }
 
         userStatisticViewModel.mealsLiveData.observe(viewLifecycleOwner) { meals ->
             meals?.let {
                 foodListAdapter.updateData(meals)
             }
         }
+
 
         binding.searchBar.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}

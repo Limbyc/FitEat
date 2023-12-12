@@ -6,16 +6,30 @@
     android:layout_marginTop="10dp">
 
     <TextView
-        android:id="@+id/TVNameFood"
         android:layout_width="match_parent"
         android:layout_height="46dp"
         android:background="@drawable/item_decoration"
+        />
+
+    <TextView
+        android:id="@+id/TVNameFood"
+        android:layout_width="wrap_content"
+        android:layout_height="46dp"
         android:textSize="13sp"
         android:textColor="@color/black"
         android:paddingStart="20dp"
         android:gravity="center_vertical"
         android:fontFamily="@font/montserrat_light"
         />
+
+    <ImageView
+        android:id="@+id/FitPhoto"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="14dp"
+        android:layout_toEndOf="@+id/TVNameFood" />
 
     <View
         android:id="@+id/plusFood"
@@ -69,7 +83,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignBottom="@+id/TVNameFood"
-        android:layout_marginEnd="47dp"
+        android:layout_marginEnd="40dp"
         android:layout_marginBottom="20dp"
         android:layout_toStartOf="@+id/plusFood"
         android:fontFamily="@font/montserrat_light" />

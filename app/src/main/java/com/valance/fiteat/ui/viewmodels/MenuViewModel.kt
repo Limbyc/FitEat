@@ -19,8 +19,4 @@ class MenuViewModel @Inject constructor(private val appRepository: AppRepository
     suspend fun getHeight(userId: Int): UserMetrics? {
         return appRepository.getHeight(userId)
     }
-
-    suspend fun getMealById(mealId: Int): Meal {
-        return appRepository.getMealById(mealId)
-    }
 }

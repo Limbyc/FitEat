@@ -22,6 +22,7 @@ import com.valance.fiteat.R
 import com.valance.fiteat.ui.adapter.FoodComponentsAdapter
 import com.valance.fiteat.ui.adapter.FoodComponentsData
 import com.valance.fiteat.databinding.MenuFragmentBinding
+import com.valance.fiteat.db.entity.Meal
 import com.valance.fiteat.ui.adapter.UserComponentsData
 import com.valance.fiteat.ui.adapter.UserComponentsAdapter
 import com.valance.fiteat.ui.viewmodels.MenuViewModel
