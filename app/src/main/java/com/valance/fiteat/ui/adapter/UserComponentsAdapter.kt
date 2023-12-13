@@ -7,7 +7,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.valance.fiteat.R
 
-class UserComponentsAdapter(private val dataList: List<UserComponentsData>)
+class UserComponentsAdapter(private var dataList: List<UserComponentsData>)
     : RecyclerView.Adapter<UserComponentsAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -23,6 +23,10 @@ class UserComponentsAdapter(private val dataList: List<UserComponentsData>)
         holder.squirrelsTextView.text = data1.values
     }
 
+    fun setData1(newData: List<UserComponentsData>){
+        dataList = newData
+        notifyDataSetChanged()
+    }
     override fun getItemCount(): Int {
         return dataList.size
     }

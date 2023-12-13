@@ -3,6 +3,7 @@ package com.valance.fiteat.ui.fragments
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
+import android.content.Context
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -14,6 +15,8 @@ import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -23,6 +26,7 @@ import com.valance.fiteat.databinding.RegistrationFragmentBinding
 import com.valance.fiteat.db.entity.User
 import com.valance.fiteat.ui.adapter.TimeMealAdapter
 import com.valance.fiteat.ui.viewmodels.RegistrationViewModel
+import com.valance.fiteat.ui.viewmodels.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -34,14 +38,14 @@ class RegistrationFragment : Fragment() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: TimeMealAdapter
     private lateinit var binding: RegistrationFragmentBinding
-    private lateinit var registrationViewModel: RegistrationViewModel
+    private val registrationViewModel: RegistrationViewModel by viewModels()
+    private val sharedViewModel: SharedViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         binding = RegistrationFragmentBinding.inflate(inflater, container, false)
-        registrationViewModel = ViewModelProvider(this)[RegistrationViewModel::class.java]
 
         setupEditTextValidation()
 
@@ -233,12 +237,17 @@ class RegistrationFragment : Fragment() {
                 val userWeight = binding.EtWeight.text.toString().toIntOrNull() ?: 0
                 val userMealTime = binding.TVMealTime.text.toString()
 
-                val user = User(id, userName, userHeight, userWeight, userMealTime)
+                val user = User(name = userName,height = userHeight,weight = userWeight,time = userMealTime)
 
 
                 lifecycleScope.launch {
                     try {
                         registrationViewModel.addUser(user)
+                        sharedViewModel.setUserId(user.id)
+                        val sharedPreferences = requireActivity().getSharedPreferences("registration", Context.MODE_PRIVATE)
+                        val editor = sharedPreferences.edit()
+                        editor.putBoolean("isRegistered", true)
+                        editor.apply()
                         requireActivity().supportFragmentManager
                             .beginTransaction()
                             .replace(R.id.Fragment_container, MenuFragment())

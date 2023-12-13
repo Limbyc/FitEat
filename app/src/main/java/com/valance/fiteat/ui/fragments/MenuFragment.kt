@@ -1,19 +1,19 @@
 package com.valance.fiteat.ui.fragments
 
 import android.app.AlertDialog
-import android.app.Dialog
 import android.os.Bundle
+import android.os.Handler
 import android.text.Editable
-import android.text.InputFilter
-import android.text.InputType
 import android.text.TextWatcher
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.TextView
-import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -22,19 +22,33 @@ import com.valance.fiteat.R
 import com.valance.fiteat.ui.adapter.FoodComponentsAdapter
 import com.valance.fiteat.ui.adapter.FoodComponentsData
 import com.valance.fiteat.databinding.MenuFragmentBinding
+import com.valance.fiteat.db.dao.UserDao
 import com.valance.fiteat.db.entity.Meal
+import com.valance.fiteat.db.entity.User
 import com.valance.fiteat.ui.adapter.UserComponentsData
 import com.valance.fiteat.ui.adapter.UserComponentsAdapter
 import com.valance.fiteat.ui.viewmodels.MenuViewModel
-import com.valance.fiteat.ui.viewmodels.RegistrationViewModel
+import com.valance.fiteat.ui.viewmodels.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import kotlin.properties.Delegates
 
 @AndroidEntryPoint
-class MenuFragment: Fragment() {
+class MenuFragment : Fragment() {
     private lateinit var binding: MenuFragmentBinding
-    private lateinit var menuViewModel: MenuViewModel
-    var isWeightValid = false
+    private val menuViewModel: MenuViewModel by viewModels()
+    private val sharedViewModel: SharedViewModel by activityViewModels()
+    private lateinit var foodComponentsAdapter: FoodComponentsAdapter
+    private lateinit var userComponentsAdapter: UserComponentsAdapter
+    private var isWeightValid = false
+    private var isTrackingTimeWithoutFood = false
+    private var timeWithoutFood: Long = 0
+    private lateinit var handler: Handler
+    private lateinit var hungryTextView: TextView
+    private val TIME_INTERVAL: Long = 1000
+    private var currentUserId: Int = 0
+
+    private var user : User? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -42,7 +56,8 @@ class MenuFragment: Fragment() {
     ): View {
         binding = MenuFragmentBinding.inflate(inflater, container, false)
 
-        menuViewModel = ViewModelProvider(this)[MenuViewModel::class.java]
+        hungryTextView = binding.Hungry
+        handler = Handler()
 
         return binding.root
     }
@@ -50,53 +65,109 @@ class MenuFragment: Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        setupFoodRecyclerView()
+        setupUserRecyclerView()
+
+        observeSharedViewModel()
+        setupEmotionClickListener()
+        binding.Water.setOnClickListener { showWaterRecallDialog() }
+        setupPlusFoodClickListeners()
+        updateUserData()
+        startTrackingTimeWithoutFood()
+    }
+
+    private fun setupFoodRecyclerView() {
         val recyclerView: RecyclerView = binding.recyclerView
-        val layoutManager = LinearLayoutManager(requireContext())
-        recyclerView.layoutManager = layoutManager
+        foodComponentsAdapter = FoodComponentsAdapter(emptyList())
+        recyclerView.adapter = foodComponentsAdapter
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+    }
 
-        val data = listOf(
-            FoodComponentsData("Белки","a"),
-            FoodComponentsData("Жиры","a"),
-            FoodComponentsData("Углеводы","a"),
-            FoodComponentsData("Клетчатка","a"),
-            FoodComponentsData("Сахар","a"),
-        )
-        val recyclerAdapter = FoodComponentsAdapter(data)
-        recyclerView.adapter = recyclerAdapter
-
+    private fun setupUserRecyclerView() {
         val recyclerView1: RecyclerView = binding.recyclerView1
-        val layoutManager1 = LinearLayoutManager(requireContext())
-        recyclerView1.layoutManager = layoutManager1
+        userComponentsAdapter = UserComponentsAdapter(emptyList())
+        recyclerView1.adapter = userComponentsAdapter
+        recyclerView1.layoutManager = LinearLayoutManager(requireContext())
+    }
 
-
+    private fun observeSharedViewModel() {
         lifecycleScope.launch {
-            val userId = id
-            val userWeight = menuViewModel.getWeight(userId)
-            val userHeight = menuViewModel.getHeight(userId)
+            sharedViewModel.mealId.collect { id ->
+                Log.d("MenuFragment", "Received id: $id")
+                val meal: Meal = menuViewModel.getMealById(id)
+                updateFoodComponents(meal)
+                lifecycleScope.launch {
+                sharedViewModel.userId.collect { id ->
+                    menuViewModel.getUserById(id)
+                    updateUserData()
+                    }
+                }
+                lifecycleScope.launch{
+                    menuViewModel.user.collect {
+                        user = it
+                    }
+                }
+            }
+        }
+    }
 
-            userWeight?.let { weightMetrics ->
-                val weight = weightMetrics.weight
+    private fun updateUserData() {
+        lifecycleScope.launch {
+            if (user != null) {
+                currentUserId = user!!.id
 
-                userHeight?.let { heightMetrics ->
-                    val height = heightMetrics.height / 100.0
-                    val bmi = weight / (height * height)
-                    val formattedBMI = String.format("%.2f", bmi)
-                    val weightWithUnit = "$weight кг"
+                val mealId = sharedViewModel.mealId.value
+                val userWeight = menuViewModel.getWeight(currentUserId)
+                val userHeight = menuViewModel.getHeight(currentUserId)
 
-                    val data1 = listOf(
-                        UserComponentsData("Вода", ""),
-                        UserComponentsData("Прием", ""),
-                        UserComponentsData("Вес", weightWithUnit),
-                        UserComponentsData("Индекс. масса", formattedBMI)
-                    )
+                mealId.let { id ->
+                    val meal: Meal = menuViewModel.getMealById(id)
 
-                    val recyclerAdapter1 = UserComponentsAdapter(data1)
-                    recyclerView1.adapter = recyclerAdapter1
+                    userWeight?.let { weightMetrics ->
+                        val weight = weightMetrics.weight
+
+                        userHeight?.let { heightMetrics ->
+                            val height = heightMetrics.height / 100.0
+                            val bmi = weight / (height * height)
+                            val formattedBMI = String.format("%.2f", bmi)
+                            val weightWithUnit = "$weight кг"
+                            val mealCalories = "${meal?.calories ?: 0} ккал"
+
+                            val data1 = listOf(
+                                UserComponentsData("Вода", ""),
+                                UserComponentsData("Прием", mealCalories),
+                                UserComponentsData("Вес", weightWithUnit),
+                                UserComponentsData("Индекс. масса", formattedBMI)
+                            )
+
+                            userComponentsAdapter.setData1(data1)
+                        }
+                    }
                 }
             }
         }
 
+    }
 
+    private fun updateFoodComponents(meal: Meal?) {
+        val defaultProteinGrams = "${meal?.squirrels ?: 0} г"
+        val defaultFatsGrams = "${meal?.fats ?: 0} г"
+        val defaultCarbsGrams = "${meal?.carbohydrates ?: 0} г"
+        val defaultFiberGrams = "${meal?.fibre ?: 0} г"
+        val defaultSugarGrams = "${meal?.sugar ?: 0} г"
+
+        val data = listOf(
+            FoodComponentsData("Белки", defaultProteinGrams),
+            FoodComponentsData("Жиры", defaultFatsGrams),
+            FoodComponentsData("Углеводы", defaultCarbsGrams),
+            FoodComponentsData("Клетчатка", defaultFiberGrams),
+            FoodComponentsData("Сахар", defaultSugarGrams)
+        )
+
+        foodComponentsAdapter.setData(data)
+    }
+
+    private fun setupEmotionClickListener() {
         binding.Emotion.setOnClickListener {
             val layoutInflater = LayoutInflater.from(requireContext())
             val dialogView = layoutInflater.inflate(R.layout.weight_change_dialog, null)
@@ -130,6 +201,10 @@ class MenuFragment: Fragment() {
 
                 val newWeight = newWeightEditText.text.toString()
                 if (isWeightValid) {
+                    lifecycleScope.launch {
+                        menuViewModel.setWeight(id, newWeight)
+                        updateUserData()
+                    }
                     dialog.dismiss()
                     binding.SadEmotion.visibility = View.GONE
                     binding.SmileWeight.visibility = View.VISIBLE
@@ -144,24 +219,9 @@ class MenuFragment: Fragment() {
 
             dialog.show()
         }
-        binding.Water.setOnClickListener {
-            showWaterRecallDialog()
-        }
-
-        fun openUserStatisticFragment() {
-            requireActivity().supportFragmentManager
-                .beginTransaction()
-                .replace(R.id.Fragment_container, UserStaticticFragment())
-                .commit()
-        }
-
-        binding.plusFood.setOnClickListener{
-            openUserStatisticFragment()
-        }
-        binding.plusFood1.setOnClickListener{
-            openUserStatisticFragment()
-        }
     }
+
+
     private fun showWaterRecallDialog() {
         val dialogBuilder = AlertDialog.Builder(requireContext(), R.style.WaterRecall)
         val dialogView = layoutInflater.inflate(R.layout.water_recall_dialog, null)
@@ -170,4 +230,43 @@ class MenuFragment: Fragment() {
         alertDialog.show()
     }
 
+    private fun setupPlusFoodClickListeners() {
+        val openUserStatisticFragment: () -> Unit = {
+            requireActivity().supportFragmentManager
+                .beginTransaction()
+                .replace(R.id.Fragment_container, UserStaticticFragment())
+                .commit()
+        }
+
+        binding.plusFood.setOnClickListener { openUserStatisticFragment() }
+        binding.plusFood1.setOnClickListener { openUserStatisticFragment() }
+    }
+
+    private fun startTrackingTimeWithoutFood() {
+        isTrackingTimeWithoutFood = true
+        handler.postDelayed(timerRunnable, TIME_INTERVAL)
+    }
+
+    private val timerRunnable = object : Runnable {
+        override fun run() {
+            if (isTrackingTimeWithoutFood) {
+                timeWithoutFood += TIME_INTERVAL
+                val timeWithoutFoodInSeconds = timeWithoutFood / 1000
+                val hours = timeWithoutFoodInSeconds / 3600
+                val minutes = (timeWithoutFoodInSeconds % 3600) / 60
+                val seconds = timeWithoutFoodInSeconds % 60
+
+                val timeText = String.format("%02d:%02d:%02d", hours, minutes, seconds)
+                hungryTextView.text = timeText
+
+                handler.postDelayed(this, TIME_INTERVAL)
+            }
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        isTrackingTimeWithoutFood = false
+        handler.removeCallbacks(timerRunnable)
+    }
 }

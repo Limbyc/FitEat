@@ -13,17 +13,19 @@ import javax.inject.Inject
 
 
 @HiltViewModel
-class UserStatisticViewModel @Inject constructor(private val appRepository: AppRepository) : ViewModel() {
+class UserStatisticViewModel @Inject constructor(private val app: AppRepository) : ViewModel() {
 
     private val _mealsLiveData: MutableLiveData<List<Meal>> = MutableLiveData()
     val mealsLiveData: LiveData<List<Meal>> = _mealsLiveData
 
     fun loadAllMeals() {
         viewModelScope.launch {
-            val meals = appRepository.getAllMeals()
+            val meals = app.getAllMeals()
             _mealsLiveData.postValue(meals)
             Log.d("UserStatisticViewModel", "Number of meals loaded: ${meals.size}")
         }
     }
+
+
 }
 

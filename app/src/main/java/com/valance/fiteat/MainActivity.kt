@@ -1,11 +1,15 @@
 package com.valance.fiteat
 
+import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
+import android.view.Menu
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.valance.fiteat.databinding.ActivityMainBinding
+import com.valance.fiteat.ui.fragments.MenuFragment
 import com.valance.fiteat.ui.fragments.RegistrationFragment
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -18,10 +22,31 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         hideSystemUI()
+        val sharedPreferences = getSharedPreferences("registration", Context.MODE_PRIVATE)
+        val isRegistered = sharedPreferences.getBoolean("isRegistered", false)
+        Log.d("MainActivity", "isRegistered: $isRegistered")
+
+        if (!isRegistered) {
+            showRegistrationFragment()
+        } else {
+            showMenuFragment()
+        }
+    }
+
+    private fun showRegistrationFragment() {
         supportFragmentManager
-            .beginTransaction().replace(R.id.Fragment_container, RegistrationFragment())
+            .beginTransaction()
+            .replace(R.id.Fragment_container, RegistrationFragment())
             .commit()
     }
+
+    private fun showMenuFragment() {
+        supportFragmentManager
+            .beginTransaction()
+            .replace(R.id.Fragment_container, MenuFragment())
+            .commit()
+    }
+
 
     private fun hideSystemUI() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -31,4 +56,6 @@ class MainActivity : AppCompatActivity() {
                 WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
     }
+
+
 }

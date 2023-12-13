@@ -106,7 +106,7 @@
             android:layout_marginBottom="9dp"
             android:fontFamily="@font/montserrat_light"
             android:textSize="15sp"
-            android:text="aaaaaa"
+            android:text="00:00:00"
             android:gravity="center"/>
 
         <TextView

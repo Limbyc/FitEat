@@ -27,5 +27,13 @@ class AppRepositoryImpl @Inject constructor(
     override suspend fun insertUser(user: User) {
         return userDao.insertUser(user)
     }
+
+    override suspend fun setWeight(userId: Int, newWeight: String) {
+        return userDao.updateUserWeight(userId, newWeight)
+    }
+
+    override suspend fun getUserById(id: Int): User {
+        return userDao.getUserById(id)
+    }
 }
 

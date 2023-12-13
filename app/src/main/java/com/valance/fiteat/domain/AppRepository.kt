@@ -17,4 +17,7 @@ interface AppRepository {
     //Получение отдельно свойств продуктов
     suspend fun getMealById(mealId: Int): Meal
     suspend fun insertUser(user: User)
+    suspend fun setWeight(userId: Int, newWeight: String)
+
+    suspend fun getUserById(id: Int): User
 }

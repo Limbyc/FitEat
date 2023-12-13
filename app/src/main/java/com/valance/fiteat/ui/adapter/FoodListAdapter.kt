@@ -9,12 +9,10 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.valance.fiteat.R
 import com.valance.fiteat.db.entity.Meal
-import com.valance.fiteat.ui.fragments.MenuFragment
-import com.valance.fiteat.ui.fragments.UserStaticticFragment
 import java.util.Locale
 
 class FoodListAdapter(private var meals: MutableList<Meal> = mutableListOf(),
-                      private val onItemSelected: (Int) -> Unit) :
+                      private val onItemSelectedListener: (Int) -> Unit) :
     RecyclerView.Adapter<FoodListAdapter.MealViewHolder>() {
 
     private var filteredList: MutableList<Meal> = meals.toMutableList()
@@ -28,6 +26,10 @@ class FoodListAdapter(private var meals: MutableList<Meal> = mutableListOf(),
     override fun onBindViewHolder(holder: MealViewHolder, position: Int) {
         val meal = filteredList[position]
         holder.bind(meal)
+
+        holder.itemView.setOnClickListener {
+            onItemSelectedListener(meal.id)
+        }
     }
 
     override fun getItemCount(): Int {
@@ -69,10 +71,6 @@ class FoodListAdapter(private var meals: MutableList<Meal> = mutableListOf(),
         notifyDataSetChanged()
     }
 
-    interface FoodItemClickListener {
-        fun onPlusEatClicked()
-    }
-
     inner class MealViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val mealNameTextView: TextView = itemView.findViewById(R.id.TVNameFood)
         private val mealCaloriesTextView: TextView = itemView.findViewById(R.id.Kalori)
@@ -81,9 +79,6 @@ class FoodListAdapter(private var meals: MutableList<Meal> = mutableListOf(),
         fun bind(meal: Meal) {
             mealNameTextView.text = meal.name
             mealCaloriesTextView.text = meal.calories.toString()
-            plusEat.setOnClickListener{
-                onItemSelected(it.id)
-            }
             if (meal.fit == 0) {
                 mealImageView.setImageResource(R.drawable.apple)
             } else if (meal.fit == 1) {

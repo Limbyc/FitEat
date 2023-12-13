@@ -7,11 +7,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.valance.fiteat.R
 import com.valance.fiteat.databinding.UserStatisticFragmentBinding
 import com.valance.fiteat.ui.adapter.FoodListAdapter
+import com.valance.fiteat.ui.viewmodels.SharedViewModel
 import com.valance.fiteat.ui.viewmodels.UserStatisticViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -20,8 +24,9 @@ import dagger.hilt.android.AndroidEntryPoint
 class UserStaticticFragment : Fragment(){
 
     private lateinit var binding: UserStatisticFragmentBinding
-    private lateinit var userStatisticViewModel: UserStatisticViewModel
+    private val userStatisticViewModel: UserStatisticViewModel by viewModels()
     private lateinit var foodListAdapter: FoodListAdapter
+    private val sharedViewModel: SharedViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -29,7 +34,6 @@ class UserStaticticFragment : Fragment(){
         savedInstanceState: Bundle?
     ): View {
         binding = UserStatisticFragmentBinding.inflate(inflater, container, false)
-        userStatisticViewModel = ViewModelProvider(this)[UserStatisticViewModel::class.java]
         return binding.root
     }
 
@@ -41,7 +45,11 @@ class UserStaticticFragment : Fragment(){
 
 
         foodListAdapter = FoodListAdapter { id ->
-
+            sharedViewModel.setMealId(id)
+            requireActivity().supportFragmentManager
+                .beginTransaction()
+                .replace(R.id.Fragment_container, MenuFragment())
+                .commit()
         }
 
         userStatisticViewModel.mealsLiveData.observe(viewLifecycleOwner) { meals ->
@@ -62,6 +70,7 @@ class UserStaticticFragment : Fragment(){
         userStatisticViewModel.loadAllMeals()
 
         mealsRecyclerView.adapter = foodListAdapter
+
     }
 }
 

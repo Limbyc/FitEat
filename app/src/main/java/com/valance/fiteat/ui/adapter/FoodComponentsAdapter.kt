@@ -7,7 +7,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.valance.fiteat.R
 
-class FoodComponentsAdapter(private val dataList: List<FoodComponentsData>) : RecyclerView.Adapter<FoodComponentsAdapter.ViewHolder>() {
+class FoodComponentsAdapter(private var dataList: List<FoodComponentsData>) : RecyclerView.Adapter<FoodComponentsAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -19,11 +19,16 @@ class FoodComponentsAdapter(private val dataList: List<FoodComponentsData>) : Re
         val data = dataList[position]
 
         holder.line1TextView.text = data.items
-        holder.squirrelsTextView.text = data.values
+        holder.squirrelsTextView.text = data.values.toString()
     }
 
     override fun getItemCount(): Int {
         return dataList.size
+    }
+
+    fun setData(newData: List<FoodComponentsData>) {
+        dataList = newData
+        notifyDataSetChanged()
     }
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
