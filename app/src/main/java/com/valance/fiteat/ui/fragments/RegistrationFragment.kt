@@ -13,17 +13,16 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.valance.fiteat.R
 import com.valance.fiteat.databinding.RegistrationFragmentBinding
-import com.valance.fiteat.db.entity.User
+import com.valance.fiteat.db.sharedPreferences.User
+import com.valance.fiteat.db.sharedPreferences.UserSharedPreferences
 import com.valance.fiteat.ui.adapter.TimeMealAdapter
 import com.valance.fiteat.ui.viewmodels.RegistrationViewModel
 import com.valance.fiteat.ui.viewmodels.SharedViewModel
@@ -237,13 +236,14 @@ class RegistrationFragment : Fragment() {
                 val userWeight = binding.EtWeight.text.toString().toIntOrNull() ?: 0
                 val userMealTime = binding.TVMealTime.text.toString()
 
-                val user = User(name = userName,height = userHeight,weight = userWeight,time = userMealTime)
 
 
                 lifecycleScope.launch {
                     try {
-                        registrationViewModel.addUser(user)
-                        sharedViewModel.setUserId(user.id)
+                        val user = User(name = userName,height = userHeight,weight = userWeight,time = userMealTime)
+                        val userSharedPreferences = context?.let { it1 -> UserSharedPreferences(it1) }
+                        userSharedPreferences?.saveUser(user)
+                        Log.e("e", user.toString())
                         val sharedPreferences = requireActivity().getSharedPreferences("registration", Context.MODE_PRIVATE)
                         val editor = sharedPreferences.edit()
                         editor.putBoolean("isRegistered", true)

@@ -14,7 +14,6 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -22,16 +21,15 @@ import com.valance.fiteat.R
 import com.valance.fiteat.ui.adapter.FoodComponentsAdapter
 import com.valance.fiteat.ui.adapter.FoodComponentsData
 import com.valance.fiteat.databinding.MenuFragmentBinding
-import com.valance.fiteat.db.dao.UserDao
+import com.valance.fiteat.db.sharedPreferences.UserSharedPreferences
 import com.valance.fiteat.db.entity.Meal
-import com.valance.fiteat.db.entity.User
+import com.valance.fiteat.db.sharedPreferences.User
 import com.valance.fiteat.ui.adapter.UserComponentsData
 import com.valance.fiteat.ui.adapter.UserComponentsAdapter
 import com.valance.fiteat.ui.viewmodels.MenuViewModel
 import com.valance.fiteat.ui.viewmodels.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import kotlin.properties.Delegates
 
 @AndroidEntryPoint
 class MenuFragment : Fragment() {
@@ -98,13 +96,7 @@ class MenuFragment : Fragment() {
                 updateFoodComponents(meal)
                 lifecycleScope.launch {
                 sharedViewModel.userId.collect { id ->
-                    menuViewModel.getUserById(id)
                     updateUserData()
-                    }
-                }
-                lifecycleScope.launch{
-                    menuViewModel.user.collect {
-                        user = it
                     }
                 }
             }
@@ -113,41 +105,40 @@ class MenuFragment : Fragment() {
 
     private fun updateUserData() {
         lifecycleScope.launch {
-            if (user != null) {
-                currentUserId = user!!.id
+            val userSharedPreferences = UserSharedPreferences(requireContext())
+            val user = userSharedPreferences.getUser()
+
+            user?.let { userData ->
 
                 val mealId = sharedViewModel.mealId.value
-                val userWeight = menuViewModel.getWeight(currentUserId)
-                val userHeight = menuViewModel.getHeight(currentUserId)
+                val userWeight = userSharedPreferences.getWeight()
+                val userHeight = userSharedPreferences.getHeight()
 
-                mealId.let { id ->
+                mealId?.let { id ->
                     val meal: Meal = menuViewModel.getMealById(id)
 
-                    userWeight?.let { weightMetrics ->
-                        val weight = weightMetrics.weight
+                    if (userWeight != -1 && userHeight != -1) {
+                        val weight = userWeight.toDouble()
+                        val height = userHeight.toDouble() / 100.0
+                        val bmi = weight / (height * height)
+                        val formattedBMI = String.format("%.2f", bmi)
+                        val weightWithUnit = "$userWeight кг"
+                        val mealCalories = "${meal?.calories ?: 0} ккал"
 
-                        userHeight?.let { heightMetrics ->
-                            val height = heightMetrics.height / 100.0
-                            val bmi = weight / (height * height)
-                            val formattedBMI = String.format("%.2f", bmi)
-                            val weightWithUnit = "$weight кг"
-                            val mealCalories = "${meal?.calories ?: 0} ккал"
+                        val data1 = listOf(
+                            UserComponentsData("Вода", ""),
+                            UserComponentsData("Прием", mealCalories),
+                            UserComponentsData("Вес", weightWithUnit),
+                            UserComponentsData("Индекс. масса", formattedBMI)
+                        )
 
-                            val data1 = listOf(
-                                UserComponentsData("Вода", ""),
-                                UserComponentsData("Прием", mealCalories),
-                                UserComponentsData("Вес", weightWithUnit),
-                                UserComponentsData("Индекс. масса", formattedBMI)
-                            )
-
-                            userComponentsAdapter.setData1(data1)
-                        }
+                        userComponentsAdapter.setData1(data1)
                     }
                 }
             }
         }
-
     }
+
 
     private fun updateFoodComponents(meal: Meal?) {
         val defaultProteinGrams = "${meal?.squirrels ?: 0} г"
@@ -199,10 +190,14 @@ class MenuFragment : Fragment() {
 
             confirmButton.setOnClickListener {
 
-                val newWeight = newWeightEditText.text.toString()
+                val newWeightText = newWeightEditText.text.toString()
                 if (isWeightValid) {
                     lifecycleScope.launch {
-                        menuViewModel.setWeight(id, newWeight)
+                        val newWeight = newWeightText.toIntOrNull()
+                        val userSharedPreferences = UserSharedPreferences(requireContext())
+                        if (newWeight != null) {
+                            userSharedPreferences.saveWeight(newWeight)
+                        }
                         updateUserData()
                     }
                     dialog.dismiss()

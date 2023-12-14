@@ -2,10 +2,8 @@ package com.valance.fiteat.di
 
 import android.content.Context
 import androidx.room.Room
-import com.valance.fiteat.FitEatApp
 import com.valance.fiteat.db.AppDatabase
 import com.valance.fiteat.db.dao.MealDao
-import com.valance.fiteat.db.dao.UserDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -25,10 +23,6 @@ object DatabaseModule{
         database: AppDatabase
     ): MealDao = database.mealDao()
 
-    @Provides
-    fun provideUserDao(
-        database: AppDatabase
-    ): UserDao = database.userDao()
 
     @Provides
     @Singleton
