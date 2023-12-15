@@ -38,8 +38,8 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/Water_recall"
             android:layout_alignParentEnd="true"
-            android:layout_marginTop="18dp"
-            android:layout_marginEnd="40dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginEnd="45dp"
             android:gravity="center"
             android:hint="нет"
             android:textColor="@color/text_color"
@@ -50,8 +50,8 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/Water_recall"
             android:layout_alignParentEnd="true"
-            android:layout_marginTop="29dp"
-            android:layout_marginEnd="7dp"
+            android:layout_marginTop="31dp"
+            android:layout_marginEnd="9dp"
             android:background="@drawable/down_arrow" />
 
         <TextView
@@ -76,6 +76,8 @@
             android:background="@drawable/item_decoration"
             android:gravity="center"
             android:hint="00:00"
+            android:maxLines="1"
+            android:maxLength="5"
             />
 
         <TextView

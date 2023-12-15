@@ -1,6 +1,5 @@
 package com.valance.fiteat.db.repository
 
-import com.valance.fiteat.db.sharedPreferences.UserMetrics
 import com.valance.fiteat.db.dao.MealDao
 import com.valance.fiteat.db.entity.Meal
 import com.valance.fiteat.domain.AppRepository

@@ -1,6 +1,7 @@
 package com.valance.fiteat.ui.fragments
 
 import android.app.AlertDialog
+import android.content.Context
 import android.os.Bundle
 import android.os.Handler
 import android.text.Editable
@@ -23,7 +24,6 @@ import com.valance.fiteat.ui.adapter.FoodComponentsData
 import com.valance.fiteat.databinding.MenuFragmentBinding
 import com.valance.fiteat.db.sharedPreferences.UserSharedPreferences
 import com.valance.fiteat.db.entity.Meal
-import com.valance.fiteat.db.sharedPreferences.User
 import com.valance.fiteat.ui.adapter.UserComponentsData
 import com.valance.fiteat.ui.adapter.UserComponentsAdapter
 import com.valance.fiteat.ui.viewmodels.MenuViewModel
@@ -44,10 +44,12 @@ class MenuFragment : Fragment() {
     private lateinit var handler: Handler
     private lateinit var hungryTextView: TextView
     private val TIME_INTERVAL: Long = 1000
-    private var currentUserId: Int = 0
-
-    private var user : User? = null
-
+    private var cumulativeProteinGrams = 0
+    private var cumulativeFatsGrams = 0
+    private var cumulativeCarbsGrams = 0
+    private var cumulativeFiberGrams = 0
+    private var cumulativeSugarGrams = 0
+    private var cumulativeMealCalories = 0
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -66,11 +68,13 @@ class MenuFragment : Fragment() {
         setupFoodRecyclerView()
         setupUserRecyclerView()
 
+        loadFoodComponentsFromSharedPreferences()
+        loadCaloriesFromSharedPreferences()
+
         observeSharedViewModel()
         setupEmotionClickListener()
         binding.Water.setOnClickListener { showWaterRecallDialog() }
         setupPlusFoodClickListeners()
-        updateUserData()
         startTrackingTimeWithoutFood()
     }
 
@@ -95,8 +99,8 @@ class MenuFragment : Fragment() {
                 val meal: Meal = menuViewModel.getMealById(id)
                 updateFoodComponents(meal)
                 lifecycleScope.launch {
-                sharedViewModel.userId.collect { id ->
-                    updateUserData()
+                    sharedViewModel.userId.collect { id ->
+                        updateUserData()
                     }
                 }
             }
@@ -115,19 +119,20 @@ class MenuFragment : Fragment() {
                 val userHeight = userSharedPreferences.getHeight()
 
                 mealId?.let { id ->
-                    val meal: Meal = menuViewModel.getMealById(id)
-
                     if (userWeight != -1 && userHeight != -1) {
                         val weight = userWeight.toDouble()
                         val height = userHeight.toDouble() / 100.0
                         val bmi = weight / (height * height)
                         val formattedBMI = String.format("%.2f", bmi)
                         val weightWithUnit = "$userWeight кг"
-                        val mealCalories = "${meal?.calories ?: 0} ккал"
+                        val meal: Meal = menuViewModel.getMealById(id)
+                        cumulativeMealCalories += meal?.calories ?: 0
+
+                        saveCaloriesToSharedPreferences()
 
                         val data1 = listOf(
                             UserComponentsData("Вода", ""),
-                            UserComponentsData("Прием", mealCalories),
+                            UserComponentsData("Прием", "$cumulativeMealCalories ккал"),
                             UserComponentsData("Вес", weightWithUnit),
                             UserComponentsData("Индекс. масса", formattedBMI)
                         )
@@ -141,22 +146,29 @@ class MenuFragment : Fragment() {
 
 
     private fun updateFoodComponents(meal: Meal?) {
-        val defaultProteinGrams = "${meal?.squirrels ?: 0} г"
-        val defaultFatsGrams = "${meal?.fats ?: 0} г"
-        val defaultCarbsGrams = "${meal?.carbohydrates ?: 0} г"
-        val defaultFiberGrams = "${meal?.fibre ?: 0} г"
-        val defaultSugarGrams = "${meal?.sugar ?: 0} г"
+        meal?.let {
+            cumulativeProteinGrams += it.squirrels ?: 0
+            cumulativeFatsGrams += it.fats ?: 0
+            cumulativeCarbsGrams += it.carbohydrates ?: 0
+            cumulativeFiberGrams += it.fibre ?: 0
+            cumulativeSugarGrams += it.sugar ?: 0
+        }
+
+        saveFoodComponentsToSharedPreferences()
 
         val data = listOf(
-            FoodComponentsData("Белки", defaultProteinGrams),
-            FoodComponentsData("Жиры", defaultFatsGrams),
-            FoodComponentsData("Углеводы", defaultCarbsGrams),
-            FoodComponentsData("Клетчатка", defaultFiberGrams),
-            FoodComponentsData("Сахар", defaultSugarGrams)
+            FoodComponentsData("Белки", "$cumulativeProteinGrams г"),
+            FoodComponentsData("Жиры", "$cumulativeFatsGrams г"),
+            FoodComponentsData("Углеводы", "$cumulativeCarbsGrams г"),
+            FoodComponentsData("Клетчатка", "$cumulativeFiberGrams г"),
+            FoodComponentsData("Сахар", "$cumulativeSugarGrams г")
         )
 
         foodComponentsAdapter.setData(data)
     }
+
+
+
 
     private fun setupEmotionClickListener() {
         binding.Emotion.setOnClickListener {
@@ -223,6 +235,28 @@ class MenuFragment : Fragment() {
         dialogBuilder.setView(dialogView)
         val alertDialog = dialogBuilder.create()
         alertDialog.show()
+        val timeWaterEditText = dialogView.findViewById<EditText>(R.id.TimeWater)
+        val buttonRemember = dialogView.findViewById<TextView>(R.id.buttonRemember)
+
+        timeWaterEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
+            override fun afterTextChanged(s: Editable?) {
+                val inputText = s.toString()
+
+                if (!isValidTimeFormat(inputText)) {
+                    timeWaterEditText.error = "Введите время в формате чч:мм"
+                } else {
+                    timeWaterEditText.error = null
+                }
+            }
+            fun isValidTimeFormat(time: String): Boolean {
+                val timeRegex = Regex("^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$")
+                return time.matches(timeRegex)
+            }
+        })
     }
 
     private fun setupPlusFoodClickListeners() {
@@ -263,5 +297,35 @@ class MenuFragment : Fragment() {
         super.onDestroyView()
         isTrackingTimeWithoutFood = false
         handler.removeCallbacks(timerRunnable)
+    }
+    private fun saveFoodComponentsToSharedPreferences() {
+        val sharedPreferences = requireContext().getSharedPreferences("FoodData", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+
+        editor.putInt("cumulativeProtein", cumulativeProteinGrams)
+        editor.putInt("cumulativeFats", cumulativeFatsGrams)
+        editor.putInt("cumulativeCarbs", cumulativeCarbsGrams)
+        editor.putInt("cumulativeFiber", cumulativeFiberGrams)
+        editor.putInt("cumulativeSugar", cumulativeSugarGrams)
+        editor.apply()
+    }
+    private fun saveCaloriesToSharedPreferences(){
+        val sharedPreferences = requireContext().getSharedPreferences("CaloriesDara", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.putInt("cumulativeCalories", cumulativeMealCalories)
+        editor.apply()
+    }
+    private fun loadFoodComponentsFromSharedPreferences() {
+        val sharedPreferences = requireContext().getSharedPreferences("FoodData", Context.MODE_PRIVATE)
+
+        cumulativeProteinGrams = sharedPreferences.getInt("cumulativeProtein", 0)
+        cumulativeFatsGrams = sharedPreferences.getInt("cumulativeFats", 0)
+        cumulativeCarbsGrams = sharedPreferences.getInt("cumulativeCarbs", 0)
+        cumulativeFiberGrams = sharedPreferences.getInt("cumulativeFiber", 0)
+        cumulativeSugarGrams = sharedPreferences.getInt("cumulativeSugar", 0)
+    }
+    private  fun loadCaloriesFromSharedPreferences(){
+        val sharedPreferences = requireContext().getSharedPreferences("CaloriesDara", Context.MODE_PRIVATE)
+        cumulativeMealCalories = sharedPreferences.getInt("cumulativeCalories", 0)
     }
 }

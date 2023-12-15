@@ -24,8 +24,6 @@ import com.valance.fiteat.databinding.RegistrationFragmentBinding
 import com.valance.fiteat.db.sharedPreferences.User
 import com.valance.fiteat.db.sharedPreferences.UserSharedPreferences
 import com.valance.fiteat.ui.adapter.TimeMealAdapter
-import com.valance.fiteat.ui.viewmodels.RegistrationViewModel
-import com.valance.fiteat.ui.viewmodels.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -37,8 +35,7 @@ class RegistrationFragment : Fragment() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: TimeMealAdapter
     private lateinit var binding: RegistrationFragmentBinding
-    private val registrationViewModel: RegistrationViewModel by viewModels()
-    private val sharedViewModel: SharedViewModel by activityViewModels()
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

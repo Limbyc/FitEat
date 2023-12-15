@@ -19,7 +19,7 @@ class FoodComponentsAdapter(private var dataList: List<FoodComponentsData>) : Re
         val data = dataList[position]
 
         holder.line1TextView.text = data.items
-        holder.squirrelsTextView.text = data.values.toString()
+        holder.squirrelsTextView.text = data.values
     }
 
     override fun getItemCount(): Int {
@@ -35,4 +35,5 @@ class FoodComponentsAdapter(private var dataList: List<FoodComponentsData>) : Re
         val line1TextView: TextView = itemView.findViewById(R.id.line1)
         val squirrelsTextView: TextView = itemView.findViewById(R.id.Squirrels)
     }
+
 }

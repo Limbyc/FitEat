@@ -15,8 +15,4 @@ class SharedViewModel : ViewModel() {
     fun setMealId(it: Int) {
         _mealId.value = it
     }
-
-    fun setUserId(it: Int) {
-        _userId.value = it
-    }
 }

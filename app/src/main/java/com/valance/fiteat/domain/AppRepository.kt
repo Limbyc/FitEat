@@ -1,6 +1,5 @@
 package com.valance.fiteat.domain
 
-import com.valance.fiteat.db.sharedPreferences.UserMetrics
 import com.valance.fiteat.db.entity.Meal
 
 
