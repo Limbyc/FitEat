@@ -1,7 +1,9 @@
 package com.valance.fiteat.ui.fragments
 
+import android.Manifest
 import android.app.AlertDialog
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Handler
 import android.text.Editable
@@ -12,6 +14,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.TextView
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -24,6 +29,7 @@ import com.valance.fiteat.ui.adapter.FoodComponentsData
 import com.valance.fiteat.databinding.MenuFragmentBinding
 import com.valance.fiteat.db.sharedPreferences.UserSharedPreferences
 import com.valance.fiteat.db.entity.Meal
+import com.valance.fiteat.db.sharedPreferences.PermissionManager
 import com.valance.fiteat.ui.adapter.UserComponentsData
 import com.valance.fiteat.ui.adapter.UserComponentsAdapter
 import com.valance.fiteat.ui.viewmodels.MenuViewModel
@@ -38,6 +44,7 @@ class MenuFragment : Fragment() {
     private val sharedViewModel: SharedViewModel by activityViewModels()
     private lateinit var foodComponentsAdapter: FoodComponentsAdapter
     private lateinit var userComponentsAdapter: UserComponentsAdapter
+    private lateinit var pLauncher: ActivityResultLauncher<String>
     private var isWeightValid = false
     private var isTrackingTimeWithoutFood = false
     private var timeWithoutFood: Long = 0
@@ -50,6 +57,7 @@ class MenuFragment : Fragment() {
     private var cumulativeFiberGrams = 0
     private var cumulativeSugarGrams = 0
     private var cumulativeMealCalories = 0
+    private var cumulativeTimeWater = 0
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -70,6 +78,9 @@ class MenuFragment : Fragment() {
 
         loadFoodComponentsFromSharedPreferences()
         loadCaloriesFromSharedPreferences()
+        loadTimeOfWaterToSharedPreferences()
+
+
 
         observeSharedViewModel()
         setupEmotionClickListener()
@@ -131,7 +142,7 @@ class MenuFragment : Fragment() {
                         saveCaloriesToSharedPreferences()
 
                         val data1 = listOf(
-                            UserComponentsData("Вода", ""),
+                            UserComponentsData("Вода", "${formatTime(cumulativeTimeWater)} время"),
                             UserComponentsData("Прием", "$cumulativeMealCalories ккал"),
                             UserComponentsData("Вес", weightWithUnit),
                             UserComponentsData("Индекс. масса", formattedBMI)
@@ -144,6 +155,11 @@ class MenuFragment : Fragment() {
         }
     }
 
+    private fun formatTime(minutes: Int): String {
+        val hours = minutes / 60
+        val mins = minutes % 60
+        return String.format("%02d:%02d", hours, mins)
+    }
 
     private fun updateFoodComponents(meal: Meal?) {
         meal?.let {
@@ -166,9 +182,6 @@ class MenuFragment : Fragment() {
 
         foodComponentsAdapter.setData(data)
     }
-
-
-
 
     private fun setupEmotionClickListener() {
         binding.Emotion.setOnClickListener {
@@ -237,7 +250,26 @@ class MenuFragment : Fragment() {
         alertDialog.show()
         val timeWaterEditText = dialogView.findViewById<EditText>(R.id.TimeWater)
         val buttonRemember = dialogView.findViewById<TextView>(R.id.buttonRemember)
+        val permission = dialogView.findViewById<TextView>(R.id.permission)
 
+        buttonRemember.setOnClickListener {
+            fun isValidTimeFormat(time: String): Boolean {
+                val timeRegex = Regex("^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$")
+                return time.matches(timeRegex)
+            }
+
+            val time = timeWaterEditText.text.toString()
+            val isValidTimeFormat = isValidTimeFormat(time)
+
+            if (isValidTimeFormat) {
+                cumulativeTimeWater = convertTimeToMinutes(time)
+                saveTimeOfWaterToSharedPreferences()
+                updateUserData()
+                alertDialog.dismiss()
+            } else {
+                buttonRemember.isEnabled = false
+            }
+        }
         timeWaterEditText.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
@@ -245,20 +277,37 @@ class MenuFragment : Fragment() {
 
             override fun afterTextChanged(s: Editable?) {
                 val inputText = s.toString()
-
                 if (!isValidTimeFormat(inputText)) {
                     timeWaterEditText.error = "Введите время в формате чч:мм"
+                    buttonRemember.setBackgroundResource(R.drawable.item_decoration)
                 } else {
                     timeWaterEditText.error = null
+                    buttonRemember.setBackgroundResource(R.drawable.item_decoration_button)
                 }
             }
-            fun isValidTimeFormat(time: String): Boolean {
-                val timeRegex = Regex("^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$")
-                return time.matches(timeRegex)
+    fun isValidTimeFormat(time: String): Boolean {
+        val timeRegex = Regex("^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$")
+        return time.matches(timeRegex)
             }
         })
+
+        val isPermissionGranted = PermissionManager.isPermissionGranted(requireContext())
+        if (isPermissionGranted) {
+            permission.visibility = View.GONE
+        } else {
+            permission.visibility = View.VISIBLE
+        }
     }
 
+    private fun convertTimeToMinutes(time: String): Int {
+        val parts = time.split(":")
+        if (parts.size == 2) {
+            val hours = parts[0].toIntOrNull() ?: 0
+            val minutes = parts[1].toIntOrNull() ?: 0
+            return hours * 60 + minutes
+        }
+        return 0
+    }
     private fun setupPlusFoodClickListeners() {
         val openUserStatisticFragment: () -> Unit = {
             requireActivity().supportFragmentManager
@@ -309,8 +358,14 @@ class MenuFragment : Fragment() {
         editor.putInt("cumulativeSugar", cumulativeSugarGrams)
         editor.apply()
     }
+    private fun saveTimeOfWaterToSharedPreferences(){
+        val sharedPreferences = requireContext().getSharedPreferences("WaterTimeData", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.putInt("cumulativeTimeWater", cumulativeTimeWater)
+        editor.apply()
+    }
     private fun saveCaloriesToSharedPreferences(){
-        val sharedPreferences = requireContext().getSharedPreferences("CaloriesDara", Context.MODE_PRIVATE)
+        val sharedPreferences = requireContext().getSharedPreferences("CaloriesData", Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
         editor.putInt("cumulativeCalories", cumulativeMealCalories)
         editor.apply()
@@ -325,7 +380,11 @@ class MenuFragment : Fragment() {
         cumulativeSugarGrams = sharedPreferences.getInt("cumulativeSugar", 0)
     }
     private  fun loadCaloriesFromSharedPreferences(){
-        val sharedPreferences = requireContext().getSharedPreferences("CaloriesDara", Context.MODE_PRIVATE)
+        val sharedPreferences = requireContext().getSharedPreferences("CaloriesData", Context.MODE_PRIVATE)
         cumulativeMealCalories = sharedPreferences.getInt("cumulativeCalories", 0)
+    }
+    private  fun loadTimeOfWaterToSharedPreferences(){
+        val sharedPreferences = requireContext().getSharedPreferences("WaterTimeData", Context.MODE_PRIVATE)
+        cumulativeTimeWater = sharedPreferences.getInt("cumulativeTimeWater", 0)
     }
 }

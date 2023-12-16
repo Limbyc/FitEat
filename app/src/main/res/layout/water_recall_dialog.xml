@@ -104,7 +104,8 @@
             android:gravity="center"
             android:text="Вы не приняли разрешение на \n отправку уведомлений"
             android:textColor="@color/text_permission"
-            android:textSize="12sp" />
+            android:textSize="12sp"
+            android:visibility="gone"/>
     </RelativeLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

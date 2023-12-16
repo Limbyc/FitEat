@@ -203,7 +203,6 @@ class RegistrationFragment : Fragment() {
                     layoutParams.height = targetCollapsedHeight
                     binding.recyclerViewMealTime.layoutParams = layoutParams
 
-                    // Hide the RecyclerView after the animation ends
                     recyclerView.visibility = View.GONE
                     binding.IvUpArrow.visibility = View.GONE
                     binding.IvDownArrow.visibility = View.VISIBLE
