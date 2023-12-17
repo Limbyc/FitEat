@@ -1,9 +1,11 @@
 package com.valance.fiteat.ui.fragments
 
-import android.Manifest
+import android.app.AlarmManager
 import android.app.AlertDialog
+import android.app.PendingIntent
 import android.content.Context
-import android.content.pm.PackageManager
+import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.os.Handler
 import android.text.Editable
@@ -14,9 +16,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.TextView
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -30,12 +29,14 @@ import com.valance.fiteat.databinding.MenuFragmentBinding
 import com.valance.fiteat.db.sharedPreferences.UserSharedPreferences
 import com.valance.fiteat.db.entity.Meal
 import com.valance.fiteat.db.sharedPreferences.PermissionManager
+import com.valance.fiteat.ui.NotificationReceiver
 import com.valance.fiteat.ui.adapter.UserComponentsData
 import com.valance.fiteat.ui.adapter.UserComponentsAdapter
 import com.valance.fiteat.ui.viewmodels.MenuViewModel
 import com.valance.fiteat.ui.viewmodels.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.util.Calendar
 
 @AndroidEntryPoint
 class MenuFragment : Fragment() {
@@ -44,14 +45,17 @@ class MenuFragment : Fragment() {
     private val sharedViewModel: SharedViewModel by activityViewModels()
     private lateinit var foodComponentsAdapter: FoodComponentsAdapter
     private lateinit var userComponentsAdapter: UserComponentsAdapter
-    private lateinit var pLauncher: ActivityResultLauncher<String>
     private var isWeightValid = false
     private var isTrackingTimeWithoutFood = false
+    private var isTrackingTimeWithoutWater = false
     private var timeWithoutFood: Long = 0
+    private var timeWithoutWater: Long = 0
     private lateinit var handler: Handler
     private lateinit var hungryTextView: TextView
+    private lateinit var thirst: TextView
     private val TIME_INTERVAL: Long = 1000
     private var cumulativeProteinGrams = 0
+    private var timeInMillis: Long = 0
     private var cumulativeFatsGrams = 0
     private var cumulativeCarbsGrams = 0
     private var cumulativeFiberGrams = 0
@@ -65,6 +69,7 @@ class MenuFragment : Fragment() {
         binding = MenuFragmentBinding.inflate(inflater, container, false)
 
         hungryTextView = binding.Hungry
+        thirst = binding.Thirst
         handler = Handler()
 
         return binding.root
@@ -86,7 +91,8 @@ class MenuFragment : Fragment() {
         setupEmotionClickListener()
         binding.Water.setOnClickListener { showWaterRecallDialog() }
         setupPlusFoodClickListeners()
-        startTrackingTimeWithoutFood()
+        context?.let { startTrackingTimeWithoutFood(it) }
+        context?.let { startTrackingTimeWithoutWater(it) }
     }
 
     private fun setupFoodRecyclerView() {
@@ -240,8 +246,6 @@ class MenuFragment : Fragment() {
             dialog.show()
         }
     }
-
-
     private fun showWaterRecallDialog() {
         val dialogBuilder = AlertDialog.Builder(requireContext(), R.style.WaterRecall)
         val dialogView = layoutInflater.inflate(R.layout.water_recall_dialog, null)
@@ -251,25 +255,7 @@ class MenuFragment : Fragment() {
         val timeWaterEditText = dialogView.findViewById<EditText>(R.id.TimeWater)
         val buttonRemember = dialogView.findViewById<TextView>(R.id.buttonRemember)
         val permission = dialogView.findViewById<TextView>(R.id.permission)
-
-        buttonRemember.setOnClickListener {
-            fun isValidTimeFormat(time: String): Boolean {
-                val timeRegex = Regex("^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$")
-                return time.matches(timeRegex)
-            }
-
-            val time = timeWaterEditText.text.toString()
-            val isValidTimeFormat = isValidTimeFormat(time)
-
-            if (isValidTimeFormat) {
-                cumulativeTimeWater = convertTimeToMinutes(time)
-                saveTimeOfWaterToSharedPreferences()
-                updateUserData()
-                alertDialog.dismiss()
-            } else {
-                buttonRemember.isEnabled = false
-            }
-        }
+        val timeWaterRecallEditText = dialogView.findViewById<EditText>(R.id.TimeWaterRecall)
         timeWaterEditText.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
@@ -285,12 +271,55 @@ class MenuFragment : Fragment() {
                     buttonRemember.setBackgroundResource(R.drawable.item_decoration_button)
                 }
             }
-    fun isValidTimeFormat(time: String): Boolean {
-        val timeRegex = Regex("^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$")
-        return time.matches(timeRegex)
+            fun isValidTimeFormat(time: String): Boolean {
+                val timeRegex = Regex("^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$")
+                return time.matches(timeRegex)
+            }
+        })
+        timeWaterRecallEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
+            override fun afterTextChanged(s: Editable?) {
+                val inputText = s.toString()
+                if (!isValidTimeFormat(inputText)) {
+                    timeWaterRecallEditText.error = "Введите время в формате чч:мм"
+                } else {
+                    timeWaterRecallEditText.error = null
+                }
+            }
+
+            private fun isValidTimeFormat(time: String): Boolean {
+                val timeRegex = Regex("^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$")
+                return time.matches(timeRegex)
             }
         })
 
+        buttonRemember.setOnClickListener {
+            fun isValidTimeFormat(time: String): Boolean {
+                val timeRegex = Regex("^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$")
+                return time.matches(timeRegex)
+            }
+
+            val time = timeWaterEditText.text.toString()
+            val isValidTimeFormat = isValidTimeFormat(time)
+            val timeWaterRecallText = timeWaterRecallEditText.text.toString()
+            if (isValidTimeFormat(timeWaterRecallText)) {
+                saveTimeWaterRecallToSharedPreferences(timeWaterRecallText)
+
+                timeInMillis = calculateTimeInMillisFromNow(timeWaterRecallText)
+                scheduleNotification(timeInMillis)
+            }
+            if (isValidTimeFormat) {
+                cumulativeTimeWater = convertTimeToMinutes(time)
+                saveTimeOfWaterToSharedPreferences()
+                updateUserData()
+                alertDialog.dismiss()
+            } else {
+                buttonRemember.isEnabled = true
+            }
+        }
         val isPermissionGranted = PermissionManager.isPermissionGranted(requireContext())
         if (isPermissionGranted) {
             permission.visibility = View.GONE
@@ -320,10 +349,31 @@ class MenuFragment : Fragment() {
         binding.plusFood1.setOnClickListener { openUserStatisticFragment() }
     }
 
-    private fun startTrackingTimeWithoutFood() {
+    private fun getSharedPreferences(context: Context): SharedPreferences {
+        return context.getSharedPreferences("prefName", Context.MODE_PRIVATE)
+    }
+
+    private fun startTrackingTimeWithoutFood(context: Context) {
         isTrackingTimeWithoutFood = true
+
+        val sharedPreferences = getSharedPreferences(context)
+        val savedTimeInMinutes = sharedPreferences.getInt("selectedTime", 0)
+
+        timeWithoutFood = (savedTimeInMinutes * 60 * 1000).toLong()
+
         handler.postDelayed(timerRunnable, TIME_INTERVAL)
     }
+    private fun startTrackingTimeWithoutWater(context: Context) {
+        isTrackingTimeWithoutWater = true
+
+        val sharedPreferences = getSharedPreferences(context)
+        val savedTimeInMinutes = sharedPreferences.getInt("selectedTimeWater", 0)
+
+        timeWithoutWater = (savedTimeInMinutes * 60 * 1000).toLong()
+
+        handler.postDelayed(waterTimerRunnable, TIME_INTERVAL)
+    }
+
 
     private val timerRunnable = object : Runnable {
         override fun run() {
@@ -332,21 +382,30 @@ class MenuFragment : Fragment() {
                 val timeWithoutFoodInSeconds = timeWithoutFood / 1000
                 val hours = timeWithoutFoodInSeconds / 3600
                 val minutes = (timeWithoutFoodInSeconds % 3600) / 60
-                val seconds = timeWithoutFoodInSeconds % 60
 
-                val timeText = String.format("%02d:%02d:%02d", hours, minutes, seconds)
+                val timeText = String.format("%02dч:%02dмин", hours, minutes)
                 hungryTextView.text = timeText
 
                 handler.postDelayed(this, TIME_INTERVAL)
             }
         }
     }
+    private val waterTimerRunnable = object : Runnable {
+        override fun run() {
+            if (isTrackingTimeWithoutWater) {
+                timeWithoutWater += TIME_INTERVAL
+                val timeWithoutWaterInSeconds = timeWithoutWater / 1000
+                val hours = timeWithoutWaterInSeconds / 3600
+                val minutes = (timeWithoutWaterInSeconds % 3600) / 60
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        isTrackingTimeWithoutFood = false
-        handler.removeCallbacks(timerRunnable)
+                val timeText = String.format("%02dч:%02dмин", hours, minutes)
+                thirst.text = timeText
+
+                handler.postDelayed(this, TIME_INTERVAL)
+            }
+        }
     }
+
     private fun saveFoodComponentsToSharedPreferences() {
         val sharedPreferences = requireContext().getSharedPreferences("FoodData", Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
@@ -386,5 +445,65 @@ class MenuFragment : Fragment() {
     private  fun loadTimeOfWaterToSharedPreferences(){
         val sharedPreferences = requireContext().getSharedPreferences("WaterTimeData", Context.MODE_PRIVATE)
         cumulativeTimeWater = sharedPreferences.getInt("cumulativeTimeWater", 0)
+    }
+
+    private fun saveTimeWaterRecallToSharedPreferences(timeWaterRecall: String) {
+        val sharedPreferences = requireContext().getSharedPreferences("YourPrefsName", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.putString("timeWaterRecall", timeWaterRecall)
+        editor.apply()
+    }
+    private fun calculateTimeInMillisFromNow(timeWaterRecall: String): Long {
+        val currentTime = System.currentTimeMillis()
+        val recallTime = convertTimeToMillis(timeWaterRecall)
+
+        if (recallTime <= currentTime) {
+            val calendar = Calendar.getInstance().apply {
+                add(Calendar.DAY_OF_YEAR, 1)
+                timeInMillis = recallTime
+            }
+            return calendar.timeInMillis
+        } else {
+            return recallTime
+        }
+    }
+
+    private fun convertTimeToMillis(time: String): Long {
+        val parts = time.split(":")
+        val hours = parts[0].toInt()
+        val minutes = parts[1].toInt()
+        val calendar = Calendar.getInstance()
+        calendar.set(Calendar.HOUR_OF_DAY, hours)
+        calendar.set(Calendar.MINUTE, minutes)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        return calendar.timeInMillis
+    }
+    private fun scheduleNotification(timeInMillis: Long) {
+        val timeWaterRecall = loadTimeWaterRecallFromSharedPreferences()
+        val timeInMillis = calculateTimeInMillisFromNow(timeWaterRecall)
+
+        val alarmManager = requireActivity().getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(requireContext(), NotificationReceiver::class.java).apply {
+            action = "WaterNotification"
+        }
+        val pendingIntent = PendingIntent.getBroadcast(
+            requireContext(),
+            0,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE
+        )
+
+        alarmManager.set(
+            AlarmManager.RTC_WAKEUP,
+            timeInMillis,
+            pendingIntent
+        )
+    }
+
+
+    private fun loadTimeWaterRecallFromSharedPreferences(): String {
+        val sharedPreferences = requireContext().getSharedPreferences("YourPrefsName", Context.MODE_PRIVATE)
+        return sharedPreferences.getString("timeWaterRecall", "0") ?: "0"
     }
 }

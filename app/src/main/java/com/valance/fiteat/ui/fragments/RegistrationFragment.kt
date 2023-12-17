@@ -4,6 +4,7 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -13,6 +14,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -42,15 +45,12 @@ class RegistrationFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = RegistrationFragmentBinding.inflate(inflater, container, false)
-
         setupEditTextValidation()
-
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         //RecyclerView
         val yourDataList = listOf(
             "Только что",
@@ -63,7 +63,6 @@ class RegistrationFragment : Fragment() {
         binding.TVMealTime.setOnClickListener{
             showOrHideList()
             }
-
         recyclerView = binding.recyclerViewMealTime
         adapter = TimeMealAdapter(yourDataList) { selectedItem ->
             binding.TVMealTime.text = selectedItem
@@ -74,9 +73,7 @@ class RegistrationFragment : Fragment() {
         //Height
         val heightWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-
             override fun afterTextChanged(s: Editable?) {
                 updateTextViewBackground()
             }
@@ -84,20 +81,24 @@ class RegistrationFragment : Fragment() {
 
         val weightWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-
             override fun afterTextChanged(s: Editable?) {
                 updateTextViewBackground()
             }
         }
-
         binding.EtHeight.addTextChangedListener(heightWatcher)
         binding.EtWeight.addTextChangedListener(weightWatcher)
-
     }
 
     private fun setupEditTextValidation() {
+        binding.EtHeight.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                hideKeyboard()
+                true
+            } else {
+                false
+            }
+        }
         binding.EtHeight.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
@@ -121,7 +122,15 @@ class RegistrationFragment : Fragment() {
                 binding.ButtonRegistration.isEnabled = isHeightValid && isWeightValid
             }
         })
-        binding.EtWeight.addTextChangedListener(object : TextWatcher {
+        binding.EtWeight.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                hideKeyboard()
+                true
+            } else {
+                false
+            }
+        }
+    binding.EtWeight.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
@@ -149,7 +158,6 @@ class RegistrationFragment : Fragment() {
     //RecyclerView
     private fun showOrHideList() {
         if (!::recyclerView.isInitialized) return
-
         if (isListExpanded) {
             collapseList()
             isListExpanded = false
@@ -177,7 +185,6 @@ class RegistrationFragment : Fragment() {
             }
         }
         animator.start()
-
         recyclerView.visibility = View.VISIBLE
         binding.IvUpArrow.visibility = View.VISIBLE
         binding.IvDownArrow.visibility = View.GONE
@@ -214,7 +221,6 @@ class RegistrationFragment : Fragment() {
     private fun convertDpToPx(dp: Int): Int {
         return (dp * resources.displayMetrics.density).toInt()
     }
-
     private fun updateTextViewBackground() {
         val enteredHeight = height ?: return
         val enteredWeight = weight ?: return
@@ -236,9 +242,30 @@ class RegistrationFragment : Fragment() {
 
                 lifecycleScope.launch {
                     try {
+                        fun timeToMinutes(timeString: String): Int {
+                            return when (timeString) {
+                                "Только что" -> 0
+                                "Пол часа назад" -> 30
+                                "Час назад" -> 60
+                                "2 часа назад" -> 120
+                                "Более чем 3 часа назад" -> 180
+                                else -> 0
+                            }
+                        }
+
+                        fun saveSelectedTime(context: Context, selectedTime: String) {
+                            val sharedPreferences: SharedPreferences = context.getSharedPreferences("prefName", Context.MODE_PRIVATE)
+                            val editor: SharedPreferences.Editor = sharedPreferences.edit()
+                            val minutes = timeToMinutes(selectedTime)
+                            editor.putInt("selectedTime", minutes)
+                            editor.apply()
+                        }
+
                         val user = User(name = userName,height = userHeight,weight = userWeight,time = userMealTime)
                         val userSharedPreferences = context?.let { it1 -> UserSharedPreferences(it1) }
                         userSharedPreferences?.saveUser(user)
+                        val selectedTime = userMealTime
+                        context?.let { it1 -> saveSelectedTime(it1, selectedTime) }
                         Log.e("e", user.toString())
                         val sharedPreferences = requireActivity().getSharedPreferences("registration", Context.MODE_PRIVATE)
                         val editor = sharedPreferences.edit()
@@ -257,5 +284,9 @@ class RegistrationFragment : Fragment() {
         } else {
             binding.ButtonRegistration.setBackgroundResource(R.drawable.item_decoration)
         }
+    }
+    private fun hideKeyboard() {
+        val inputMethodManager = requireActivity().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        inputMethodManager.hideSoftInputFromWindow(requireActivity().currentFocus?.windowToken, 0)
     }
 }

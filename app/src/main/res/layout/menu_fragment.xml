@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:padding="28dp">
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_margin="28dp">
+        android:layout_height="match_parent">
 
         <TextView
             android:id="@+id/Info"
@@ -38,17 +38,17 @@
         <TextView
             android:id="@+id/Thirst"
             android:textColor="@color/text_color"
-            android:layout_width="70dp"
+            android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:layout_alignStart="@+id/Water"
             android:layout_alignEnd="@+id/Water"
             android:layout_alignBottom="@+id/Water"
-            android:layout_marginStart="40dp"
-            android:layout_marginEnd="40dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
             android:layout_marginBottom="7dp"
             android:fontFamily="@font/montserrat_light"
             android:textSize="15sp"
-            android:text="aaaaa"
+            android:text="00ч:00мин"
             android:gravity="center"/>
 
         <ImageView
@@ -95,18 +95,18 @@
 
         <TextView
             android:id="@+id/Hungry"
-            android:layout_width="70dp"
+            android:layout_width="120dp"
             android:textColor="@color/text_color"
             android:layout_height="wrap_content"
             android:layout_alignStart="@+id/Food"
             android:layout_alignEnd="@+id/Food"
             android:layout_alignBottom="@+id/Food"
-            android:layout_marginStart="40dp"
-            android:layout_marginEnd="40dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
             android:layout_marginBottom="9dp"
             android:fontFamily="@font/montserrat_light"
             android:textSize="15sp"
-            android:text="00:00:00"
+            android:text="00ч:00мин"
             android:gravity="center"/>
 
         <TextView

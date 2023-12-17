@@ -50,6 +50,7 @@ class UserStaticticFragment : Fragment(){
                 .beginTransaction()
                 .replace(R.id.Fragment_container, MenuFragment())
                 .commit()
+
         }
 
         userStatisticViewModel.mealsLiveData.observe(viewLifecycleOwner) { meals ->
@@ -72,5 +73,11 @@ class UserStaticticFragment : Fragment(){
         mealsRecyclerView.adapter = foodListAdapter
 
     }
+
+
+
 }
+
+
+
 

@@ -1,14 +1,19 @@
 package com.valance.fiteat
 
 import android.Manifest
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.view.Menu
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -20,6 +25,7 @@ import com.valance.fiteat.ui.fragments.RegistrationFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 
+const val CHANNEL_ID = "channelId"
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -30,6 +36,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        createNotificationChannel()
         hideSystemUI()
         registerPermissionListener()
         checkPostNatification()
@@ -43,6 +51,23 @@ class MainActivity : AppCompatActivity() {
             showMenuFragment()
         }
     }
+
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                "First channel",
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
+            channel.description = "Test"
+
+            val notificationManager =
+                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
+
 
     private fun showRegistrationFragment() {
         supportFragmentManager
@@ -71,7 +96,6 @@ class MainActivity : AppCompatActivity() {
         when{
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
                     == PackageManager.PERMISSION_GRANTED ->{
-
             }
             else ->{
                 pLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
