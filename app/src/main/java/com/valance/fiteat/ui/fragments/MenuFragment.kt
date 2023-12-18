@@ -2,8 +2,12 @@ package com.valance.fiteat.ui.fragments
 
 import android.app.AlarmManager
 import android.app.AlertDialog
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
+import android.content.Context.NOTIFICATION_SERVICE
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -16,6 +20,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.TextView
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -32,11 +37,16 @@ import com.valance.fiteat.db.sharedPreferences.PermissionManager
 import com.valance.fiteat.ui.NotificationReceiver
 import com.valance.fiteat.ui.adapter.UserComponentsData
 import com.valance.fiteat.ui.adapter.UserComponentsAdapter
+import com.valance.fiteat.ui.channelID
+import com.valance.fiteat.ui.messageExtra
+import com.valance.fiteat.ui.notificationID
+import com.valance.fiteat.ui.titleExtra
 import com.valance.fiteat.ui.viewmodels.MenuViewModel
 import com.valance.fiteat.ui.viewmodels.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import java.util.TimeZone
 
 @AndroidEntryPoint
 class MenuFragment : Fragment() {
@@ -62,18 +72,23 @@ class MenuFragment : Fragment() {
     private var cumulativeSugarGrams = 0
     private var cumulativeMealCalories = 0
     private var cumulativeTimeWater = 0
+
+
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         binding = MenuFragmentBinding.inflate(inflater, container, false)
-
+        val context = requireContext()
         hungryTextView = binding.Hungry
         thirst = binding.Thirst
         handler = Handler()
-
+        createNotificationChannel(context)
         return binding.root
     }
+
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -308,8 +323,8 @@ class MenuFragment : Fragment() {
             if (isValidTimeFormat(timeWaterRecallText)) {
                 saveTimeWaterRecallToSharedPreferences(timeWaterRecallText)
 
-                timeInMillis = calculateTimeInMillisFromNow(timeWaterRecallText)
-                scheduleNotification(timeInMillis)
+                timeInMillis = calculateTimeInSecondsFromNow(timeWaterRecallText)
+                scheduleNotification(time)
             }
             if (isValidTimeFormat) {
                 cumulativeTimeWater = convertTimeToMinutes(time)
@@ -452,58 +467,71 @@ class MenuFragment : Fragment() {
         val editor = sharedPreferences.edit()
         editor.putString("timeWaterRecall", timeWaterRecall)
         editor.apply()
+        Log.d("ddddddddddddddd" , timeWaterRecall )
     }
-    private fun calculateTimeInMillisFromNow(timeWaterRecall: String): Long {
-        val currentTime = System.currentTimeMillis()
-        val recallTime = convertTimeToMillis(timeWaterRecall)
-
-        if (recallTime <= currentTime) {
-            val calendar = Calendar.getInstance().apply {
-                add(Calendar.DAY_OF_YEAR, 1)
-                timeInMillis = recallTime
-            }
-            return calendar.timeInMillis
-        } else {
-            return recallTime
-        }
-    }
-
-    private fun convertTimeToMillis(time: String): Long {
-        val parts = time.split(":")
+    private fun convertTimeToSeconds(timeWaterRecall: String): Long {
+        val parts = timeWaterRecall.split(":")
         val hours = parts[0].toInt()
         val minutes = parts[1].toInt()
-        val calendar = Calendar.getInstance()
-        calendar.set(Calendar.HOUR_OF_DAY, hours)
-        calendar.set(Calendar.MINUTE, minutes)
-        calendar.set(Calendar.SECOND, 0)
-        calendar.set(Calendar.MILLISECOND, 0)
-        return calendar.timeInMillis
-    }
-    private fun scheduleNotification(timeInMillis: Long) {
-        val timeWaterRecall = loadTimeWaterRecallFromSharedPreferences()
-        val timeInMillis = calculateTimeInMillisFromNow(timeWaterRecall)
 
-        val alarmManager = requireActivity().getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(requireContext(), NotificationReceiver::class.java).apply {
-            action = "WaterNotification"
+        return (hours * 60 + minutes) * 60L
+    }
+
+    private fun calculateTimeInSecondsFromNow(timeWaterRecall: String): Long {
+        val currentTimeInSeconds = System.currentTimeMillis() / 1000
+        val recallTimeInSeconds = convertTimeToSeconds(timeWaterRecall)
+
+        return if (recallTimeInSeconds <= currentTimeInSeconds) {
+            val calendar = Calendar.getInstance(TimeZone.getTimeZone("Europe/Moscow"))
+            val parts = timeWaterRecall.split(":")
+            val hours = parts[0].toInt()
+            val minutes = parts[1].toInt()
+
+            calendar.set(Calendar.HOUR_OF_DAY, hours)
+            calendar.set(Calendar.MINUTE, minutes)
+            calendar.set(Calendar.SECOND, 0)
+            calendar.set(Calendar.MILLISECOND, 0)
+
+            calendar.add(Calendar.DAY_OF_YEAR, 1)
+            calendar.timeInMillis / 1000
+        } else {
+            recallTimeInSeconds
         }
+    }
+
+    private fun createNotificationChannel(context: Context) {
+        val name = "Notification Channel"
+        val desc = "A description of the channel"
+        val importance = NotificationManager.IMPORTANCE_DEFAULT
+        val channel = NotificationChannel(channelID, name , importance)
+        channel.description = desc
+
+        val notificationManager = context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(channel)
+    }
+
+    private fun scheduleNotification(timeWaterRecall: String) {
+        val intent = Intent(requireContext(), Notification::class.java)
+        val title = "Не забывайте пить воду!!"
+        val message = "Вода - источник жизни. Не забудьте попить!"
+        intent.putExtra(titleExtra, title)
+        intent.putExtra(messageExtra, message)
+
         val pendingIntent = PendingIntent.getBroadcast(
             requireContext(),
-            0,
+            notificationID,
             intent,
-            PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        alarmManager.set(
+        val alarmManager = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val timeInSecondsWater = calculateTimeInSecondsFromNow(timeWaterRecall)
+
+        Log.d("Notification", "Установлено уведомление на время: $timeWaterRecall")
+        alarmManager.setExactAndAllowWhileIdle(
             AlarmManager.RTC_WAKEUP,
-            timeInMillis,
+            timeInSecondsWater * 1000,
             pendingIntent
         )
-    }
-
-
-    private fun loadTimeWaterRecallFromSharedPreferences(): String {
-        val sharedPreferences = requireContext().getSharedPreferences("YourPrefsName", Context.MODE_PRIVATE)
-        return sharedPreferences.getString("timeWaterRecall", "0") ?: "0"
     }
 }

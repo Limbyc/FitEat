@@ -1,8 +1,6 @@
 package com.valance.fiteat
 
 import android.Manifest
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
@@ -11,9 +9,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -25,22 +21,21 @@ import com.valance.fiteat.ui.fragments.RegistrationFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 
-const val CHANNEL_ID = "channelId"
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     lateinit var binding: ActivityMainBinding
-    private lateinit var pLauncher: ActivityResultLauncher<String>
+    private lateinit var pLauncher: ActivityResultLauncher<Array<String>>
 
+ @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        createNotificationChannel()
         hideSystemUI()
         registerPermissionListener()
-        checkPostNatification()
+        checkPermissions()
         val sharedPreferences = getSharedPreferences("registration", Context.MODE_PRIVATE)
         val isRegistered = sharedPreferences.getBoolean("isRegistered", false)
         Log.d("MainActivity", "isRegistered: $isRegistered")
@@ -51,23 +46,6 @@ class MainActivity : AppCompatActivity() {
             showMenuFragment()
         }
     }
-
-
-    private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                "First channel",
-                NotificationManager.IMPORTANCE_DEFAULT
-            )
-            channel.description = "Test"
-
-            val notificationManager =
-                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
-        }
-    }
-
 
     private fun showRegistrationFragment() {
         supportFragmentManager
@@ -92,23 +70,40 @@ class MainActivity : AppCompatActivity() {
                 WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
     }
-    private fun checkPostNatification(){
-        when{
-            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-                    == PackageManager.PERMISSION_GRANTED ->{
-            }
-            else ->{
-                pLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    private fun checkPermissions() {
+        val permissionsToCheck = listOf(
+            Manifest.permission.POST_NOTIFICATIONS,
+            Manifest.permission.SCHEDULE_EXACT_ALARM,
+            Manifest.permission.USE_EXACT_ALARM
+        )
+
+        val permissionsToRequest = mutableListOf<String>()
+
+        permissionsToCheck.forEach { permission ->
+            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                permissionsToRequest.add(permission)
             }
         }
+
+        if (permissionsToRequest.isNotEmpty()) {
+            pLauncher.launch(permissionsToRequest.toTypedArray())
+        }
     }
+
+
     private fun registerPermissionListener() {
-        pLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
-            if (it) {
-                PermissionManager.savePermissionGranted(this, true)
-            } else {
-                PermissionManager.savePermissionGranted(this, false)
+        pLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+            permissions.entries.forEach { entry ->
+                entry.key
+                val isGranted = entry.value
+                if (isGranted) {
+                    PermissionManager.savePermissionGranted(this, true)
+                } else {
+                    PermissionManager.savePermissionGranted(this, false)
+                }
             }
         }
     }
 }
+
