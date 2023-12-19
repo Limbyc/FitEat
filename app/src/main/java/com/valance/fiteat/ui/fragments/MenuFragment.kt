@@ -83,8 +83,9 @@ class MenuFragment : Fragment() {
         val context = requireContext()
         hungryTextView = binding.Hungry
         thirst = binding.Thirst
-        handler = Handler()
         createNotificationChannel(context)
+
+        handler = Handler()
         return binding.root
     }
 
@@ -324,7 +325,7 @@ class MenuFragment : Fragment() {
                 saveTimeWaterRecallToSharedPreferences(timeWaterRecallText)
 
                 timeInMillis = calculateTimeInSecondsFromNow(timeWaterRecallText)
-                scheduleNotification(time)
+                scheduleNotification(timeWaterRecallText)
             }
             if (isValidTimeFormat) {
                 cumulativeTimeWater = convertTimeToMinutes(time)
@@ -481,7 +482,7 @@ class MenuFragment : Fragment() {
         val currentTimeInSeconds = System.currentTimeMillis() / 1000
         val recallTimeInSeconds = convertTimeToSeconds(timeWaterRecall)
 
-        return if (recallTimeInSeconds <= currentTimeInSeconds) {
+        val timeDifferenceInSeconds = if (recallTimeInSeconds <= currentTimeInSeconds) {
             val calendar = Calendar.getInstance(TimeZone.getTimeZone("Europe/Moscow"))
             val parts = timeWaterRecall.split(":")
             val hours = parts[0].toInt()
@@ -492,11 +493,12 @@ class MenuFragment : Fragment() {
             calendar.set(Calendar.SECOND, 0)
             calendar.set(Calendar.MILLISECOND, 0)
 
-            calendar.add(Calendar.DAY_OF_YEAR, 1)
-            calendar.timeInMillis / 1000
+            calendar.timeInMillis / 1000 - currentTimeInSeconds
         } else {
-            recallTimeInSeconds
+            recallTimeInSeconds - currentTimeInSeconds
         }
+        Log.d("TimeDifference", "Time difference in seconds: $timeDifferenceInSeconds")
+        return timeDifferenceInSeconds
     }
 
     private fun createNotificationChannel(context: Context) {
@@ -511,7 +513,7 @@ class MenuFragment : Fragment() {
     }
 
     private fun scheduleNotification(timeWaterRecall: String) {
-        val intent = Intent(requireContext(), Notification::class.java)
+        val intent = Intent(requireContext(), NotificationReceiver::class.java)
         val title = "Не забывайте пить воду!!"
         val message = "Вода - источник жизни. Не забудьте попить!"
         intent.putExtra(titleExtra, title)

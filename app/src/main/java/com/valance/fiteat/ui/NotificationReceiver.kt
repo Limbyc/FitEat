@@ -9,7 +9,7 @@ import androidx.core.app.NotificationCompat
 import com.valance.fiteat.R
 
 const val notificationID = 1
-const val channelID = "channel1"
+const val channelID = "channelID"
 const val titleExtra = "titleExtra"
 const val messageExtra = "messageExtra"
 class NotificationReceiver : BroadcastReceiver() {
