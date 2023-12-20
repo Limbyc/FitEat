@@ -273,6 +273,7 @@ class RegistrationFragment : Fragment() {
                         editor.apply()
                         requireActivity().supportFragmentManager
                             .beginTransaction()
+                            .setCustomAnimations(R.anim.slide_in, R.anim.slide_out)
                             .replace(R.id.Fragment_container, MenuFragment())
                             .commit()
                     } catch (exception: Exception) {

@@ -72,7 +72,7 @@ class MenuFragment : Fragment() {
     private var cumulativeSugarGrams = 0
     private var cumulativeMealCalories = 0
     private var cumulativeTimeWater = 0
-
+    private val TIME_WITHOUT_FOOD_KEY = "timeWithoutFood"
 
 
     override fun onCreateView(
@@ -321,21 +321,27 @@ class MenuFragment : Fragment() {
             val time = timeWaterEditText.text.toString()
             val isValidTimeFormat = isValidTimeFormat(time)
             val timeWaterRecallText = timeWaterRecallEditText.text.toString()
+
             if (isValidTimeFormat(timeWaterRecallText)) {
                 saveTimeWaterRecallToSharedPreferences(timeWaterRecallText)
-
                 timeInMillis = calculateTimeInSecondsFromNow(timeWaterRecallText)
                 scheduleNotification(timeWaterRecallText)
             }
+
             if (isValidTimeFormat) {
                 cumulativeTimeWater = convertTimeToMinutes(time)
                 saveTimeOfWaterToSharedPreferences()
                 updateUserData()
                 alertDialog.dismiss()
+
+                handler.removeCallbacks(waterTimerRunnable)
+
+                startTrackingTimeWithoutWater(requireContext())
             } else {
                 buttonRemember.isEnabled = true
             }
         }
+
         val isPermissionGranted = PermissionManager.isPermissionGranted(requireContext())
         if (isPermissionGranted) {
             permission.visibility = View.GONE
@@ -355,15 +361,17 @@ class MenuFragment : Fragment() {
     }
     private fun setupPlusFoodClickListeners() {
         val openUserStatisticFragment: () -> Unit = {
-            requireActivity().supportFragmentManager
-                .beginTransaction()
-                .replace(R.id.Fragment_container, UserStaticticFragment())
-                .commit()
+            val fragmentTransaction = requireActivity().supportFragmentManager.beginTransaction()
+            .setCustomAnimations(R.anim.slide_in, R.anim.slide_out)
+            .replace(R.id.Fragment_container, UserStaticticFragment())
+            .addToBackStack(null)
+            .commit()
         }
 
         binding.plusFood.setOnClickListener { openUserStatisticFragment() }
         binding.plusFood1.setOnClickListener { openUserStatisticFragment() }
     }
+
 
     private fun getSharedPreferences(context: Context): SharedPreferences {
         return context.getSharedPreferences("prefName", Context.MODE_PRIVATE)
@@ -373,28 +381,47 @@ class MenuFragment : Fragment() {
         isTrackingTimeWithoutFood = true
 
         val sharedPreferences = getSharedPreferences(context)
-        val savedTimeInMinutes = sharedPreferences.getInt("selectedTime", 0)
+        timeWithoutFood = sharedPreferences.getLong(TIME_WITHOUT_FOOD_KEY, 0)
 
-        timeWithoutFood = (savedTimeInMinutes * 60 * 1000).toLong()
+        if (timeWithoutFood == 0L) {
+            val savedTimeInMinutes = sharedPreferences.getInt("selectedTime", 0)
+            timeWithoutFood = (savedTimeInMinutes * 60 * 1000).toLong()
+        }
 
         handler.postDelayed(timerRunnable, TIME_INTERVAL)
     }
     private fun startTrackingTimeWithoutWater(context: Context) {
         isTrackingTimeWithoutWater = true
 
-        val sharedPreferences = getSharedPreferences(context)
-        val savedTimeInMinutes = sharedPreferences.getInt("selectedTimeWater", 0)
+        val sharedPreferences = context.getSharedPreferences("WaterTimeData", Context.MODE_PRIVATE)
+        val savedTimeInMinutes = sharedPreferences.getInt("cumulativeTimeWater", 0)
 
-        timeWithoutWater = (savedTimeInMinutes * 60 * 1000).toLong()
+        val currentTimeInMoscowMinutes = getCurrentTimeInMoscowMinutes()
+        val timeDifferenceInMinutes = currentTimeInMoscowMinutes - savedTimeInMinutes
+
+        timeWithoutWater = if (timeDifferenceInMinutes > 0) {
+            (timeDifferenceInMinutes * 60 * 1000).toLong()
+        } else {
+            0L
+        }
 
         handler.postDelayed(waterTimerRunnable, TIME_INTERVAL)
     }
-
+    private fun getCurrentTimeInMoscowMinutes(): Int {
+        val moscowTimeZone = TimeZone.getTimeZone("Europe/Moscow")
+        val calendar = Calendar.getInstance(moscowTimeZone)
+        val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
+        val currentMinute = calendar.get(Calendar.MINUTE)
+        return currentHour * 60 + currentMinute
+    }
 
     private val timerRunnable = object : Runnable {
         override fun run() {
             if (isTrackingTimeWithoutFood) {
                 timeWithoutFood += TIME_INTERVAL
+
+                saveTimeWithoutFoodToSharedPreferences(timeWithoutFood)
+
                 val timeWithoutFoodInSeconds = timeWithoutFood / 1000
                 val hours = timeWithoutFoodInSeconds / 3600
                 val minutes = (timeWithoutFoodInSeconds % 3600) / 60
@@ -422,6 +449,12 @@ class MenuFragment : Fragment() {
         }
     }
 
+    private fun saveTimeWithoutFoodToSharedPreferences(timeWithoutFood: Long) {
+        val sharedPreferences = getSharedPreferences(requireContext())
+        val editor = sharedPreferences.edit()
+        editor.putLong(TIME_WITHOUT_FOOD_KEY, timeWithoutFood)
+        editor.apply()
+    }
     private fun saveFoodComponentsToSharedPreferences() {
         val sharedPreferences = requireContext().getSharedPreferences("FoodData", Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
@@ -462,13 +495,11 @@ class MenuFragment : Fragment() {
         val sharedPreferences = requireContext().getSharedPreferences("WaterTimeData", Context.MODE_PRIVATE)
         cumulativeTimeWater = sharedPreferences.getInt("cumulativeTimeWater", 0)
     }
-
     private fun saveTimeWaterRecallToSharedPreferences(timeWaterRecall: String) {
         val sharedPreferences = requireContext().getSharedPreferences("YourPrefsName", Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
         editor.putString("timeWaterRecall", timeWaterRecall)
         editor.apply()
-        Log.d("ddddddddddddddd" , timeWaterRecall )
     }
     private fun convertTimeToSeconds(timeWaterRecall: String): Long {
         val parts = timeWaterRecall.split(":")
@@ -477,7 +508,6 @@ class MenuFragment : Fragment() {
 
         return (hours * 60 + minutes) * 60L
     }
-
     private fun calculateTimeInSecondsFromNow(timeWaterRecall: String): Long {
         val currentTimeInSeconds = System.currentTimeMillis() / 1000
         val recallTimeInSeconds = convertTimeToSeconds(timeWaterRecall)
@@ -500,7 +530,6 @@ class MenuFragment : Fragment() {
         Log.d("TimeDifference", "Time difference in seconds: $timeDifferenceInSeconds")
         return timeDifferenceInSeconds
     }
-
     private fun createNotificationChannel(context: Context) {
         val name = "Notification Channel"
         val desc = "A description of the channel"
@@ -511,7 +540,6 @@ class MenuFragment : Fragment() {
         val notificationManager = context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.createNotificationChannel(channel)
     }
-
     private fun scheduleNotification(timeWaterRecall: String) {
         val intent = Intent(requireContext(), NotificationReceiver::class.java)
         val title = "Не забывайте пить воду!!"
