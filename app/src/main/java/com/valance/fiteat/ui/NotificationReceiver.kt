@@ -14,6 +14,8 @@ const val titleExtra = "titleExtra"
 const val messageExtra = "messageExtra"
 class NotificationReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
+
+
         val notification: Notification = NotificationCompat.Builder(context, channelID)
             .setSmallIcon(R.mipmap.ic_launcher_foreground)
             .setContentTitle(intent?.getStringExtra(titleExtra))

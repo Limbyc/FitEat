@@ -1,5 +1,6 @@
 package com.valance.fiteat.ui.adapter
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,6 +10,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.valance.fiteat.R
 import com.valance.fiteat.db.entity.Meal
+import com.valance.fiteat.ui.fragments.MenuFragment
 import java.util.Locale
 
 class FoodListAdapter(private var meals: MutableList<Meal> = mutableListOf(),
@@ -26,11 +28,12 @@ class FoodListAdapter(private var meals: MutableList<Meal> = mutableListOf(),
     override fun onBindViewHolder(holder: MealViewHolder, position: Int) {
         val meal = filteredList[position]
         holder.bind(meal)
-
         holder.itemView.setOnClickListener {
+            saveSelectedTimeToSharedPreferences(holder.itemView.context)
             onItemSelectedListener(meal.id)
         }
     }
+
 
     override fun getItemCount(): Int {
         return filteredList.size
@@ -86,6 +89,14 @@ class FoodListAdapter(private var meals: MutableList<Meal> = mutableListOf(),
             }
 
         }
+    }
+    private fun saveSelectedTimeToSharedPreferences(context: Context) {
+        val sharedPreferences = context.getSharedPreferences("TimeWithoutFood", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+
+        val currentTimeMillis = System.currentTimeMillis()
+        editor.putLong("selectedTime", currentTimeMillis)
+        editor.apply()
     }
 }
 

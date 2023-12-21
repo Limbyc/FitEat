@@ -44,16 +44,20 @@ class UserStaticticFragment : Fragment(){
         mealsRecyclerView.layoutManager = LinearLayoutManager(requireContext())
 
 
-        foodListAdapter = FoodListAdapter { id ->
-            sharedViewModel.setMealId(id)
-            requireActivity().supportFragmentManager
-                .beginTransaction()
-                .setCustomAnimations(R.anim.slide_in, R.anim.slide_out)
-                .replace(R.id.Fragment_container, MenuFragment())
-                .addToBackStack(null)
-                .commit()
+        foodListAdapter = FoodListAdapter(
+            onItemSelectedListener = { id ->
+                sharedViewModel.setMealId(id)
 
-        }
+                requireActivity().supportFragmentManager
+                    .beginTransaction()
+                    .setCustomAnimations(R.anim.slide_in, R.anim.slide_out)
+                    .replace(R.id.Fragment_container, MenuFragment())
+                    .addToBackStack(null)
+                    .commit()
+            },
+        )
+
+
 
         userStatisticViewModel.mealsLiveData.observe(viewLifecycleOwner) { meals ->
             meals?.let {

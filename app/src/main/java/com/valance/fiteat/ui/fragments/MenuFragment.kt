@@ -12,6 +12,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.os.Handler
+import android.os.SystemClock
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
@@ -73,7 +74,6 @@ class MenuFragment : Fragment() {
     private var cumulativeMealCalories = 0
     private var cumulativeTimeWater = 0
     private val TIME_WITHOUT_FOOD_KEY = "timeWithoutFood"
-
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -324,7 +324,6 @@ class MenuFragment : Fragment() {
 
             if (isValidTimeFormat(timeWaterRecallText)) {
                 saveTimeWaterRecallToSharedPreferences(timeWaterRecallText)
-                timeInMillis = calculateTimeInSecondsFromNow(timeWaterRecallText)
                 scheduleNotification(timeWaterRecallText)
             }
 
@@ -380,16 +379,25 @@ class MenuFragment : Fragment() {
     private fun startTrackingTimeWithoutFood(context: Context) {
         isTrackingTimeWithoutFood = true
 
-        val sharedPreferences = getSharedPreferences(context)
-        timeWithoutFood = sharedPreferences.getLong(TIME_WITHOUT_FOOD_KEY, 0)
+        val sharedPreferencesTimeWithoutFood = context.getSharedPreferences("TimeWithoutFood", Context.MODE_PRIVATE)
+        val savedTimeInMillis = sharedPreferencesTimeWithoutFood.getLong("selectedTime", 0)
 
-        if (timeWithoutFood == 0L) {
-            val savedTimeInMinutes = sharedPreferences.getInt("selectedTime", 0)
-            timeWithoutFood = (savedTimeInMinutes * 60 * 1000).toLong()
+        if (savedTimeInMillis != 0L) {
+            timeWithoutFood = System.currentTimeMillis() - savedTimeInMillis
+            handler.postDelayed(timerRunnable, TIME_INTERVAL)
+        } else {
+            val sharedPreferences = getSharedPreferences(context)
+            timeWithoutFood = sharedPreferences.getLong(TIME_WITHOUT_FOOD_KEY, 0)
+
+            if (timeWithoutFood == 0L) {
+                val savedTimeInMinutes = sharedPreferences.getInt("selectedTime", 0)
+                timeWithoutFood = (savedTimeInMinutes * 60 * 1000).toLong()
+            }
+
+            handler.postDelayed(timerRunnable, TIME_INTERVAL)
         }
-
-        handler.postDelayed(timerRunnable, TIME_INTERVAL)
     }
+
     private fun startTrackingTimeWithoutWater(context: Context) {
         isTrackingTimeWithoutWater = true
 
@@ -414,6 +422,7 @@ class MenuFragment : Fragment() {
         val currentMinute = calendar.get(Calendar.MINUTE)
         return currentHour * 60 + currentMinute
     }
+
 
     private val timerRunnable = object : Runnable {
         override fun run() {

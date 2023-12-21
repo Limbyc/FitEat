@@ -29,7 +29,8 @@
             android:layout_below="@+id/Info"
             android:layout_marginTop="16dp"
             android:fontFamily="@font/montserrat_medium"
-            android:background="@drawable/item_decoration"
+            android:background="@drawable/ripple_effect"
+            android:clickable="true"
             android:text="без воды:"
             android:gravity="center|bottom"
             android:paddingBottom="26dp"
@@ -73,7 +74,8 @@
             android:layout_marginStart="18dp"
             android:layout_marginTop="16dp"
             android:layout_toEndOf="@+id/Water"
-            android:background="@drawable/item_decoration"
+            android:background="@drawable/ripple_effect"
+            android:clickable="true"
             android:fontFamily="@font/montserrat_medium"
             android:text="без еды:"
             android:gravity="center|bottom"
@@ -135,7 +137,8 @@
                 android:id="@+id/recyclerView"
                 android:padding="16dp"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="match_parent"
+                />
 
             <View
                 android:id="@+id/plusFood"
@@ -163,7 +166,8 @@
             android:layout_marginStart="18dp"
             android:layout_marginTop="14dp"
             android:layout_toEndOf="@+id/Belki"
-            android:background="@drawable/item_decoration">
+            android:background="@drawable/ripple_effect"
+            android:clickable="true">
 
 
             <androidx.recyclerview.widget.RecyclerView
@@ -202,7 +206,8 @@
             android:layout_marginStart="18dp"
             android:layout_marginTop="17dp"
             android:paddingBottom="18dp"
-            android:background="@drawable/item_decoration"
+            android:background="@drawable/ripple_effect"
+            android:clickable="true"
             android:text="Вы еще не внесли\n информацию о весе сегодня"
             />
 
