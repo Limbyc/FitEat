@@ -23,7 +23,7 @@ import com.valance.fiteat.databinding.ActivityMainBinding
 import com.valance.fiteat.db.sharedPreferences.PermissionManager
 import com.valance.fiteat.ui.fragments.MenuFragment
 import com.valance.fiteat.ui.fragments.RegistrationFragment
-import com.valance.fiteat.ui.fragments.UserStaticticFragment
+import com.valance.fiteat.ui.fragments.UserStatisticFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 
@@ -121,7 +121,7 @@ class MainActivity : AppCompatActivity() {
             override fun handleOnBackPressed() {
                 val currentFragment = supportFragmentManager.findFragmentById(R.id.Fragment_container)
 
-                if (currentFragment is UserStaticticFragment) {
+                if (currentFragment is UserStatisticFragment) {
                     val transaction = supportFragmentManager.beginTransaction()
                     transaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_in_left)
                     currentFragment.view?.startAnimation(

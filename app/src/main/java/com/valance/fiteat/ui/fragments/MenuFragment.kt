@@ -28,6 +28,11 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.work.Constraints
+import androidx.work.Data
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.valance.fiteat.R
 import com.valance.fiteat.ui.adapter.FoodComponentsAdapter
 import com.valance.fiteat.ui.adapter.FoodComponentsData
@@ -35,19 +40,16 @@ import com.valance.fiteat.databinding.MenuFragmentBinding
 import com.valance.fiteat.db.sharedPreferences.UserSharedPreferences
 import com.valance.fiteat.db.entity.Meal
 import com.valance.fiteat.db.sharedPreferences.PermissionManager
-import com.valance.fiteat.ui.NotificationReceiver
+import com.valance.fiteat.ui.WaterReminderWorker
 import com.valance.fiteat.ui.adapter.UserComponentsData
 import com.valance.fiteat.ui.adapter.UserComponentsAdapter
-import com.valance.fiteat.ui.channelID
-import com.valance.fiteat.ui.messageExtra
-import com.valance.fiteat.ui.notificationID
-import com.valance.fiteat.ui.titleExtra
 import com.valance.fiteat.ui.viewmodels.MenuViewModel
 import com.valance.fiteat.ui.viewmodels.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.TimeZone
+import java.util.concurrent.TimeUnit
 
 @AndroidEntryPoint
 class MenuFragment : Fragment() {
@@ -83,7 +85,6 @@ class MenuFragment : Fragment() {
         val context = requireContext()
         hungryTextView = binding.Hungry
         thirst = binding.Thirst
-        createNotificationChannel(context)
 
         handler = Handler()
         return binding.root
@@ -324,7 +325,7 @@ class MenuFragment : Fragment() {
 
             if (isValidTimeFormat(timeWaterRecallText)) {
                 saveTimeWaterRecallToSharedPreferences(timeWaterRecallText)
-                scheduleNotification(timeWaterRecallText)
+                scheduleNotificationWithWorkManager(timeWaterRecallText)
             }
 
             if (isValidTimeFormat) {
@@ -362,7 +363,7 @@ class MenuFragment : Fragment() {
         val openUserStatisticFragment: () -> Unit = {
             val fragmentTransaction = requireActivity().supportFragmentManager.beginTransaction()
             .setCustomAnimations(R.anim.slide_in, R.anim.slide_out)
-            .replace(R.id.Fragment_container, UserStaticticFragment())
+            .replace(R.id.Fragment_container, UserStatisticFragment())
             .addToBackStack(null)
             .commit()
         }
@@ -539,39 +540,23 @@ class MenuFragment : Fragment() {
         Log.d("TimeDifference", "Time difference in seconds: $timeDifferenceInSeconds")
         return timeDifferenceInSeconds
     }
-    private fun createNotificationChannel(context: Context) {
-        val name = "Notification Channel"
-        val desc = "A description of the channel"
-        val importance = NotificationManager.IMPORTANCE_DEFAULT
-        val channel = NotificationChannel(channelID, name , importance)
-        channel.description = desc
 
-        val notificationManager = context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.createNotificationChannel(channel)
+    private fun scheduleNotificationWithWorkManager(timeWaterRecall: String) {
+        val inputData = Data.Builder()
+            .putString("timeWaterRecall", timeWaterRecall)
+            .build()
+
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val workRequest = OneTimeWorkRequestBuilder<WaterReminderWorker>()
+            .setInputData(inputData)
+            .setConstraints(constraints)
+            .setInitialDelay(calculateTimeInSecondsFromNow(timeWaterRecall), TimeUnit.SECONDS)
+            .build()
+
+        context?.let { WorkManager.getInstance(it).enqueue(workRequest) }
     }
-    private fun scheduleNotification(timeWaterRecall: String) {
-        val intent = Intent(requireContext(), NotificationReceiver::class.java)
-        val title = "Не забывайте пить воду!!"
-        val message = "Вода - источник жизни. Не забудьте попить!"
-        intent.putExtra(titleExtra, title)
-        intent.putExtra(messageExtra, message)
 
-        val pendingIntent = PendingIntent.getBroadcast(
-            requireContext(),
-            notificationID,
-            intent,
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        )
-
-        val alarmManager = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val timeInSecondsWater = calculateTimeInSecondsFromNow(timeWaterRecall)
-
-        Log.d("Notification", "Установлено уведомление на время: $timeWaterRecall")
-        alarmManager.setExactAndAllowWhileIdle(
-            AlarmManager.RTC_WAKEUP,
-            timeInSecondsWater * 1000,
-            pendingIntent
-        )
-    }
-    //.
 }

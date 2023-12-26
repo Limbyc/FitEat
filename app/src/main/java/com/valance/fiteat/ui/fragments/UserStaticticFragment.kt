@@ -9,7 +9,6 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.valance.fiteat.R
@@ -21,7 +20,7 @@ import dagger.hilt.android.AndroidEntryPoint
 
 
 @AndroidEntryPoint
-class UserStaticticFragment : Fragment(){
+class UserStatisticFragment : Fragment(){
 
     private lateinit var binding: UserStatisticFragmentBinding
     private val userStatisticViewModel: UserStatisticViewModel by viewModels()
