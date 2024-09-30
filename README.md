@@ -1,5 +1,5 @@
 ## FitEat
-A mobile application that helps the user to count kilocalories and reminds the user to stay hydrated
+A mobile app that helps the user to count kilocalories and reminds them to keep their water balance.
 ## Architecture
 This application follows the classic SOLID based clean architecture approach. This approach differs from official architecture guidance, but it is actively used by many developers. 
 ## Features
