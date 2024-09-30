@@ -68,7 +68,6 @@ class MenuFragment : Fragment() {
     private lateinit var thirst: TextView
     private val TIME_INTERVAL: Long = 1000
     private var cumulativeProteinGrams = 0
-    private var timeInMillis: Long = 0
     private var cumulativeFatsGrams = 0
     private var cumulativeCarbsGrams = 0
     private var cumulativeFiberGrams = 0
@@ -90,8 +89,6 @@ class MenuFragment : Fragment() {
         return binding.root
     }
 
-
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -101,7 +98,6 @@ class MenuFragment : Fragment() {
         loadFoodComponentsFromSharedPreferences()
         loadCaloriesFromSharedPreferences()
         loadTimeOfWaterToSharedPreferences()
-
 
 
         observeSharedViewModel()
