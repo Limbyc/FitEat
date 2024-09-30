@@ -12,16 +12,16 @@ This application follows the classic SOLID based clean architecture approach. Th
 ## Fragments
 ### RegistrationFragment 
 <p align="center">
-<img  src=".\RegistrationFragment.jpg" width="30%">
+<img  src="./images_readme/RegistrationFragment.jpg" width="30%">
 </p>
 
 ### MainFragment
 <p align="center">
-<img  src=".\RegistrationFragment.jpg" width="30%">
+<img  src="./images_readme/MainFragment.jpg" width="30%">
 </p>
 
 ### MenuFragment 
 <p align="center">
-<img  src=".\RegistrationFragment.jpg" width="30%">
+<img  src="./images_readme/MenuFragment.jpg" width="30%">
 </p>
 
